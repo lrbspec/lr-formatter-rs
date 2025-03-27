@@ -5,7 +5,7 @@ use std::error::Error;
 use lr_formatter_rs::{convert, format::Format};
 
 #[derive(Parser)]
-#[command(version = "1.0", author = "Your Name <your@email.com>", about = "CLI for converting Line Rider file formats")]
+#[command(version = "1.0", author = "LRBSpec", about = "CLI for converting Line Rider file formats")]
 struct Cli {
     input: String,
     from: String,
@@ -17,7 +17,7 @@ fn parse_format(format: &str) -> Result<Format, Box<dyn Error>> {
     match format.to_lowercase().as_str() {
         "trackjson" => Ok(Format::TrackJson),
         "lrb" => Ok(Format::LRB),
-        _ => Err("Unsupported format".into()),
+        _ => Err("Must be one of (trackjson, lrb)".into()),
     }
 }
 
