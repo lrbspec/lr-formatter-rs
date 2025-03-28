@@ -1,4 +1,4 @@
-use crate::internal::{
+use crate::format_internal::{
     GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine, Vec2,
 };
 use bitflags::bitflags;

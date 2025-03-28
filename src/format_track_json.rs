@@ -1,6 +1,6 @@
 use core::panic;
 
-use crate::internal::{
+use crate::format_internal::{
     GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine, Vec2,
 };
 use serde::{Deserialize, Serialize};

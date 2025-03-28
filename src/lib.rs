@@ -1,6 +1,6 @@
 pub mod format_lrb;
 pub mod format_track_json;
-pub mod internal;
+pub mod format_internal;
 
 use format_lrb::{parse_lrb, write_lrb};
 use format_track_json::{parse_track_json, write_track_json};
