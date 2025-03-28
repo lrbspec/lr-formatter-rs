@@ -6,6 +6,8 @@ use anyhow::Result;
 use format_lrb::{parse_lrb, write_lrb};
 use format_track_json::{parse_track_json, write_track_json};
 
+// TODO: Include a general purpose logging library for more standardized logs
+
 pub enum Format {
     TrackJson,
     LRB,
