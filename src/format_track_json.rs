@@ -1,9 +1,16 @@
-use core::panic;
-
 use crate::format_internal::{
     GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine, Vec2,
 };
+use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
+
+// A u32 value that can take the range of a normal u32, or -1 for invalid (for parsing some json fields)
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+enum FaultyU32 {
+    Valid(u32),
+    Invalid(i32),
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 struct JsonLine {
@@ -32,7 +39,7 @@ struct JsonLayer {
     visible: bool,
     editable: bool,
     #[serde(rename = "folderId")]
-    folder_id: Option<u32>,
+    folder_id: FaultyU32,
     size: Option<u32>,
 }
 
@@ -61,14 +68,14 @@ struct JsonTrack {
     script: String,
 }
 
-pub fn parse_track_json(json_str: &str) -> Result<InternalTrackFormat, Box<dyn std::error::Error>> {
+pub fn parse_track_json(json_str: &str) -> Result<InternalTrackFormat> {
     let track: JsonTrack = serde_json::from_str(json_str)?;
 
     let grid_version = match track.version.as_str() {
         "6.0" => GridVersion::V6_0,
         "6.1" => GridVersion::V6_1,
         "6.2" => GridVersion::V6_2,
-        other => panic!("[ERROR] Invalid grid version {other} when parsing json!"),
+        other => return Err(anyhow!("Invalid grid version {} when parsing json!", other)),
     };
 
     let mut scenery_lines = Vec::<SceneryLine>::new();
@@ -79,7 +86,7 @@ pub fn parse_track_json(json_str: &str) -> Result<InternalTrackFormat, Box<dyn s
             0 => LineType::BLUE,
             1 => LineType::RED,
             2 => LineType::GREEN,
-            other => panic!("[ERROR] Json line had invalid line type {other}!"),
+            other => return Err(anyhow!("Json line had invalid line type {}!", other)),
         };
 
         let base_line = Line {
@@ -101,13 +108,13 @@ pub fn parse_track_json(json_str: &str) -> Result<InternalTrackFormat, Box<dyn s
                 base_line,
                 flipped: line
                     .flipped
-                    .expect("[ERROR] Json simulation line did not have flipped!"),
-                left_extension: line
-                    .left_ext
-                    .expect("[ERROR] Json simulation line did not have left extension!"),
-                right_extension: line
-                    .right_ext
-                    .expect("[ERROR] Json simulation line did not have right extension!"),
+                    .ok_or_else(|| anyhow!("Json simline did not have flipped attribute!"))?,
+                left_extension: line.left_ext.ok_or_else(|| {
+                    anyhow!("Json simline did not have left_extension attribute!")
+                })?,
+                right_extension: line.right_ext.ok_or_else(|| {
+                    anyhow!("Json simline did not have right_extension attribute!")
+                })?,
                 multiplier: None,
             });
         }
@@ -126,9 +133,7 @@ pub fn parse_track_json(json_str: &str) -> Result<InternalTrackFormat, Box<dyn s
     })
 }
 
-pub fn write_track_json(
-    internal: &InternalTrackFormat,
-) -> Result<String, Box<dyn std::error::Error>> {
+pub fn write_track_json(internal: &InternalTrackFormat) -> Result<String> {
     let version = match internal.grid_version {
         GridVersion::V6_0 => String::from("6.0"),
         GridVersion::V6_1 => String::from("6.1"),

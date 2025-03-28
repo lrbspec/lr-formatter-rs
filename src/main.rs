@@ -1,6 +1,6 @@
+use anyhow::{Context, Result};
 use clap::Parser;
 use lr_formatter_rs::{Format, convert};
-use std::error::Error;
 use std::fs::File;
 use std::io::{Read, Write};
 
@@ -17,41 +17,49 @@ struct Cli {
     output: Option<String>,
 }
 
-fn parse_format(format: &str) -> Result<Format, Box<dyn Error>> {
+fn parse_format(format: &str) -> Result<Format> {
     match format.to_lowercase().as_str() {
         "trackjson" => Ok(Format::TrackJson),
         "lrb" => Ok(Format::LRB),
-        _ => Err("Must be one of (trackjson, lrb)".into()),
+        _ => Err(anyhow::anyhow!(
+            "Invalid format '{}'. Must be one of: trackjson, lrb",
+            format
+        )),
     }
 }
 
-fn main() {
+fn run() -> Result<()> {
     let args = Cli::parse();
 
-    let from_format = parse_format(&args.from).expect("Invalid from format");
-    let to_format = parse_format(&args.to).expect("Invalid to format");
+    let from_format = parse_format(&args.from).context("Failed to parse 'from' format")?;
+    let to_format = parse_format(&args.to).context("Failed to parse 'to' format")?;
 
     let mut input_data = Vec::new();
     File::open(&args.input)
-        .expect("Failed to open input file")
+        .with_context(|| format!("Failed to open input file '{}'", &args.input))?
         .read_to_end(&mut input_data)
-        .expect("Failed to read input file");
+        .context("Failed to read input file")?;
 
-    match convert(&input_data, from_format, to_format) {
-        Ok(converted_data) => {
-            if let Some(ref output) = args.output {
-                File::create(output)
-                    .expect("Failed to create output file")
-                    .write_all(&converted_data)
-                    .expect("Failed to write output file");
-                println!("Converted file saved to {}", output);
-            } else {
-                println!("{}", String::from_utf8_lossy(&converted_data));
-            }
-        }
-        Err(e) => {
-            eprintln!("Error: {}", e);
-            std::process::exit(1);
-        }
+    let converted_data =
+        convert(&input_data, from_format, to_format).context("Conversion failed")?;
+
+    if let Some(ref output) = args.output {
+        File::create(output)
+            .with_context(|| format!("Failed to create output file '{}'", output))?
+            .write_all(&converted_data)
+            .context("Failed to write output file")?;
+
+        println!("Converted file saved to {}", output);
+    } else {
+        println!("{}", String::from_utf8_lossy(&converted_data));
+    }
+
+    Ok(())
+}
+
+fn main() {
+    if let Err(err) = run() {
+        eprintln!("Error: {:?}", err);
+        std::process::exit(1);
     }
 }

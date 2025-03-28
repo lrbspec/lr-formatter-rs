@@ -1,14 +1,13 @@
 use crate::format_internal::{
     GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine, Vec2,
 };
+use anyhow::{Context, Result, anyhow};
 use bitflags::bitflags;
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use std::{
     collections::HashMap,
     io::{Cursor, Read, Seek, SeekFrom, Write},
 };
-
-// TODO: Add logging crate for generic, standardized logging
 
 bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -79,12 +78,14 @@ const SUPPORTED_MODS: [LRBMod; 5] = [
 enum StringLength {
     U8,
     U16,
+    #[allow(dead_code)]
     U32,
+    #[allow(dead_code)]
     Fixed(usize),
 }
 
 // Generalized function for reading strings
-fn parse_string(cursor: &mut Cursor<&[u8]>, length_type: StringLength) -> std::io::Result<String> {
+fn parse_string(cursor: &mut Cursor<&[u8]>, length_type: StringLength) -> Result<String> {
     let length = match length_type {
         StringLength::U8 => cursor.read_u8()? as usize,
         StringLength::U16 => cursor.read_u16::<LittleEndian>()? as usize,
@@ -95,10 +96,10 @@ fn parse_string(cursor: &mut Cursor<&[u8]>, length_type: StringLength) -> std::i
     let mut buffer = vec![0; length];
     cursor.read_exact(&mut buffer)?;
 
-    Ok(String::from_utf8(buffer).expect("[ERROR] Read invalid UTF-8 string"))
+    Ok(String::from_utf8(buffer).context("Read invalid UTF-8 string")?)
 }
 
-pub fn parse_lrb(data: &[u8]) -> Result<InternalTrackFormat, Box<dyn std::error::Error>> {
+pub fn parse_lrb(data: &[u8]) -> Result<InternalTrackFormat> {
     let mut cursor = Cursor::new(data);
     let mut parsed_track = InternalTrackFormat {
         ..Default::default()
@@ -109,7 +110,7 @@ pub fn parse_lrb(data: &[u8]) -> Result<InternalTrackFormat, Box<dyn std::error:
     cursor.read_exact(&mut magic_number)?;
 
     if &magic_number != b"LRB" {
-        return Err("[ERROR] Read invalid magic number!".into());
+        return Err(anyhow!("Read invalid magic number!"));
     }
 
     // Version
@@ -126,11 +127,10 @@ pub fn parse_lrb(data: &[u8]) -> Result<InternalTrackFormat, Box<dyn std::error:
         // Version
         let version = cursor.read_u16::<LittleEndian>()?;
 
-        println!("[INFO] Loading mod ${name} v${version}");
+        println!("[INFO] Loading mod {name} v{version}");
 
         // Flags
-        let flags =
-            ModFlags::from_bits(cursor.read_u8()?).expect("[ERROR] Read invalid mod flags!");
+        let flags = ModFlags::from_bits(cursor.read_u8()?).context("Read invalid mod flags!")?;
 
         let mut offset = 0u64;
         let mut _length = 0u64; // TODO: length is unused
@@ -153,7 +153,7 @@ pub fn parse_lrb(data: &[u8]) -> Result<InternalTrackFormat, Box<dyn std::error:
 
         if !supported {
             if flags.contains(ModFlags::OPTIONAL) {
-                return Err(format!("[ERROR] Required mod {name} was not supported!").into());
+                return Err(anyhow!("Required mod {} was not supported!", name));
             }
 
             println!("[WARNING] This mod is not supported: {optional_message}");
@@ -184,7 +184,7 @@ pub fn parse_lrb(data: &[u8]) -> Result<InternalTrackFormat, Box<dyn std::error:
                     0 => GridVersion::V6_2,
                     1 => GridVersion::V6_1,
                     2 => GridVersion::V6_0,
-                    other => panic!("[ERROR] Read invalid grid version number {other}!"),
+                    other => Err(anyhow!("Read invalid grid version number {}!", other))?,
                 };
             }
             "base.label" => {
@@ -217,7 +217,7 @@ pub fn parse_lrb(data: &[u8]) -> Result<InternalTrackFormat, Box<dyn std::error:
                 for _ in [0..num_lines] {
                     let id = cursor.read_u32::<LittleEndian>()?;
                     let line_flags = SimLineFlags::from_bits(cursor.read_u8()?)
-                        .expect("[ERROR] Read invalid simulation line flags!");
+                        .context("Read invalid simulation line flags!")?;
                     let x1 = cursor.read_f64::<LittleEndian>()?;
                     let y1 = cursor.read_f64::<LittleEndian>()?;
                     let x2 = cursor.read_f64::<LittleEndian>()?;
@@ -252,7 +252,7 @@ pub fn parse_lrb(data: &[u8]) -> Result<InternalTrackFormat, Box<dyn std::error:
                 let y = cursor.read_f64::<LittleEndian>()?;
                 parsed_track.start_position = Vec2 { x, y };
             }
-            other => panic!("[ERROR] Came across invalid mod {}!", other),
+            other => Err(anyhow!("Came across invalid mod {}!", other))?,
         }
 
         cursor.seek(SeekFrom::Start(current_position))?;
@@ -261,7 +261,7 @@ pub fn parse_lrb(data: &[u8]) -> Result<InternalTrackFormat, Box<dyn std::error:
     Ok(parsed_track)
 }
 
-pub fn write_lrb(internal: &InternalTrackFormat) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+pub fn write_lrb(internal: &InternalTrackFormat) -> Result<Vec<u8>> {
     let mut buffer = Cursor::new(Vec::new());
     let mut mod_table_entry_offsets: HashMap<String, u64> = HashMap::new();
 
@@ -385,7 +385,7 @@ pub fn write_lrb(internal: &InternalTrackFormat) -> Result<Vec<u8>, Box<dyn std:
                 buffer.write_f64::<LittleEndian>(internal.start_position.x)?;
                 buffer.write_f64::<LittleEndian>(internal.start_position.y)?;
             }
-            other => panic!("[ERROR] Implementation not written for {}!", other),
+            other => Err(anyhow!("Implementation not written for {}!", other))?,
         }
 
         let section_end = buffer.stream_position()?;
