@@ -42,6 +42,7 @@ struct JsonRider {
     start_pos: Vec2,
     #[serde(rename = "startVelocity")]
     start_vel: Vec2,
+    angle: Option<f64>,
     remountable: bool,
 }
 

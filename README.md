@@ -4,5 +4,5 @@ A library for converting between track formats, written in rust.
 
 Testing the CLI:
 ```bash
-cargo run -- samples/test.track.json trackjson lrb samples/test.LRB
+cargo run -- samples/sample_three_lines.track.json trackjson lrb sample_output.LRB
 ```
