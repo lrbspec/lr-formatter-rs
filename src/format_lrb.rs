@@ -1,4 +1,6 @@
-use crate::internal::{GridVersion, InternalTrackFormat, LineType};
+use crate::internal::{
+    GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine, Vec2,
+};
 use bitflags::bitflags;
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use std::{
@@ -6,9 +8,11 @@ use std::{
     io::{Cursor, Read, Seek, SeekFrom, Write},
 };
 
+// TODO: Add logging crate for generic, standardized logging
+
 bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-    pub struct ModFlags: u8 {
+    struct ModFlags: u8 {
         const OPTIONAL = 1 << 0;
         const PHYSICS = 1 << 1;
         const CAMERA = 1 << 2;
@@ -17,12 +21,18 @@ bitflags! {
     }
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-    pub struct SimLineFlags: u8 {
+    struct SimLineFlags: u8 {
         const RED = 1 << 0;
         const INVERTED = 1 << 1;
         const LEFT_EXTENSION = 1 << 2;
         const RIGHT_EXTENSION = 1 << 3;
     }
+}
+
+macro_rules! join_flags {
+    ($($flag:ident),+) => {
+        ModFlags::from_bits_truncate($(ModFlags::$flag.bits() | )+ 0)
+    };
 }
 
 #[derive(Debug)]
@@ -31,12 +41,6 @@ struct LRBMod {
     version: u16,
     flags: ModFlags,
     optional_message: Option<&'static str>,
-}
-
-macro_rules! join_flags {
-    ($($flag:ident),+) => {
-        ModFlags::from_bits_truncate($(ModFlags::$flag.bits() | )+ 0)
-    };
 }
 
 const SUPPORTED_MODS: [LRBMod; 5] = [
@@ -72,23 +76,189 @@ const SUPPORTED_MODS: [LRBMod; 5] = [
     },
 ];
 
+enum StringLength {
+    U8,
+    U16,
+    U32,
+    Fixed(usize),
+}
+
+// Generalized function for reading strings
+fn parse_string(cursor: &mut Cursor<&[u8]>, length_type: StringLength) -> std::io::Result<String> {
+    let length = match length_type {
+        StringLength::U8 => cursor.read_u8()? as usize,
+        StringLength::U16 => cursor.read_u16::<LittleEndian>()? as usize,
+        StringLength::U32 => cursor.read_u32::<LittleEndian>()? as usize,
+        StringLength::Fixed(size) => size,
+    };
+
+    let mut buffer = vec![0; length];
+    cursor.read_exact(&mut buffer)?;
+
+    Ok(String::from_utf8(buffer).expect("[ERROR] Read invalid UTF-8 string"))
+}
+
 pub fn parse_lrb(data: &[u8]) -> Result<InternalTrackFormat, Box<dyn std::error::Error>> {
     let mut cursor = Cursor::new(data);
+    let mut parsed_track = InternalTrackFormat {
+        ..Default::default()
+    };
 
-    // Check magic number
+    // Magic number
     let mut magic_number = [0u8; 3];
     cursor.read_exact(&mut magic_number)?;
+
     if &magic_number != b"LRB" {
-        return Err("[parse_lrb] Invalid magic number!".into());
+        return Err("[ERROR] Read invalid magic number!".into());
     }
 
-    // Read title length and title
-    let title_len = cursor.read_u16::<LittleEndian>()? as usize;
-    let mut title_bytes = vec![0; title_len];
-    cursor.read_exact(&mut title_bytes)?;
-    let title = String::from_utf8(title_bytes).unwrap();
+    // Version
+    let _version = cursor.read_u8()?; // TODO: Implement separate parse function for each file version?
 
-    Ok(InternalTrackFormat { title })
+    // Number of mods
+    let mod_count = cursor.read_u16::<LittleEndian>()?;
+
+    // Mod table
+    for _ in [0..mod_count] {
+        // Name
+        let name = parse_string(&mut cursor, StringLength::U8)?;
+
+        // Version
+        let version = cursor.read_u16::<LittleEndian>()?;
+
+        println!("[INFO] Loading mod ${name} v${version}");
+
+        // Flags
+        let flags =
+            ModFlags::from_bits(cursor.read_u8()?).expect("[ERROR] Read invalid mod flags!");
+
+        let mut offset = 0u64;
+        let mut _length = 0u64; // TODO: length is unused
+
+        // Data address
+        if flags.contains(ModFlags::EXTRA_DATA) {
+            offset = cursor.read_u64::<LittleEndian>()?;
+            _length = cursor.read_u64::<LittleEndian>()?;
+        }
+
+        let mut optional_message = String::new();
+        // Optional message
+        if flags.contains(ModFlags::OPTIONAL) {
+            optional_message = parse_string(&mut cursor, StringLength::U8)?;
+        }
+
+        let supported = SUPPORTED_MODS
+            .iter()
+            .any(|supported_mod| supported_mod.name == name);
+
+        if !supported {
+            if flags.contains(ModFlags::OPTIONAL) {
+                return Err(format!("[ERROR] Required mod {name} was not supported!").into());
+            }
+
+            println!("[WARNING] This mod is not supported: {optional_message}");
+            if flags.contains(ModFlags::SCENERY) {
+                println!("[WARNING] Ignoring it may affect scenery rendering.");
+            }
+            if flags.contains(ModFlags::CAMERA) {
+                println!("[WARNING] Ignoring it may affect camera functionality.");
+            }
+            if flags.contains(ModFlags::PHYSICS) {
+                println!("[WARNING] Ignoring it may affect track physics.");
+            }
+        }
+
+        // We're done if there's no more data
+        if !flags.contains(ModFlags::EXTRA_DATA) {
+            continue;
+        }
+
+        // Record the current position and jump to the extra data position
+        let current_position = cursor.stream_position()?;
+        cursor.seek(SeekFrom::Start(offset))?;
+
+        match name.as_str() {
+            "base.gridver" => {
+                let grid_version_number = cursor.read_u8()?;
+                parsed_track.grid_version = match grid_version_number {
+                    0 => GridVersion::V6_2,
+                    1 => GridVersion::V6_1,
+                    2 => GridVersion::V6_0,
+                    other => panic!("[ERROR] Read invalid grid version number {other}!"),
+                };
+            }
+            "base.label" => {
+                parsed_track.title = parse_string(&mut cursor, StringLength::U16)?;
+            }
+            "base.scnline" => {
+                let num_lines = cursor.read_u32::<LittleEndian>()?;
+                for _ in [0..num_lines] {
+                    let id = cursor.read_u32::<LittleEndian>()?;
+                    let x1 = cursor.read_f64::<LittleEndian>()?;
+                    let y1 = cursor.read_f64::<LittleEndian>()?;
+                    let x2 = cursor.read_f64::<LittleEndian>()?;
+                    let y2 = cursor.read_f64::<LittleEndian>()?;
+                    let base_line = Line {
+                        id,
+                        x1,
+                        y1,
+                        x2,
+                        y2,
+                        line_type: LineType::GREEN,
+                    };
+                    parsed_track.scenery_lines.push(SceneryLine {
+                        base_line,
+                        width: None,
+                    });
+                }
+            }
+            "base.simline" => {
+                let num_lines = cursor.read_u32::<LittleEndian>()?;
+                for _ in [0..num_lines] {
+                    let id = cursor.read_u32::<LittleEndian>()?;
+                    let line_flags = SimLineFlags::from_bits(cursor.read_u8()?)
+                        .expect("[ERROR] Read invalid simulation line flags!");
+                    let x1 = cursor.read_f64::<LittleEndian>()?;
+                    let y1 = cursor.read_f64::<LittleEndian>()?;
+                    let x2 = cursor.read_f64::<LittleEndian>()?;
+                    let y2 = cursor.read_f64::<LittleEndian>()?;
+                    let line_type = if line_flags.contains(SimLineFlags::RED) {
+                        LineType::RED
+                    } else {
+                        LineType::BLUE
+                    };
+                    let flipped = line_flags.contains(SimLineFlags::INVERTED);
+                    let left_extension = line_flags.contains(SimLineFlags::LEFT_EXTENSION);
+                    let right_extension = line_flags.contains(SimLineFlags::RIGHT_EXTENSION);
+                    let base_line = Line {
+                        id,
+                        x1,
+                        y1,
+                        x2,
+                        y2,
+                        line_type,
+                    };
+                    parsed_track.simulation_lines.push(SimulationLine {
+                        base_line,
+                        flipped,
+                        left_extension,
+                        right_extension,
+                        multiplier: None,
+                    });
+                }
+            }
+            "base.startpos" => {
+                let x = cursor.read_f64::<LittleEndian>()?;
+                let y = cursor.read_f64::<LittleEndian>()?;
+                parsed_track.start_position = Vec2 { x, y };
+            }
+            other => panic!("[ERROR] Came across invalid mod {}!", other),
+        }
+
+        cursor.seek(SeekFrom::Start(current_position))?;
+    }
+
+    Ok(parsed_track)
 }
 
 pub fn write_lrb(internal: &InternalTrackFormat) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
@@ -118,12 +288,8 @@ pub fn write_lrb(internal: &InternalTrackFormat) -> Result<Vec<u8>, Box<dyn std:
 
         // Data address
         if supported_mod.flags.contains(ModFlags::EXTRA_DATA) {
-            mod_table_entry_offsets.insert(
-                supported_mod.name.to_string(),
-                buffer
-                    .stream_position()
-                    .expect("[write_lrb] Cursor offset invalid when writing to mod table"),
-            );
+            mod_table_entry_offsets
+                .insert(supported_mod.name.to_string(), buffer.stream_position()?);
 
             // Allocate space for data address information
             buffer.write_u64::<LittleEndian>(0)?;
@@ -219,7 +385,7 @@ pub fn write_lrb(internal: &InternalTrackFormat) -> Result<Vec<u8>, Box<dyn std:
                 buffer.write_f64::<LittleEndian>(internal.start_position.x)?;
                 buffer.write_f64::<LittleEndian>(internal.start_position.y)?;
             }
-            other => panic!("Implementation not written for {}!", other),
+            other => panic!("[ERROR] Implementation not written for {}!", other),
         }
 
         let section_end = buffer.stream_position()?;

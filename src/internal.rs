@@ -1,5 +1,6 @@
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub enum GridVersion {
+    #[default]
     V6_2 = 0,
     V6_1 = 1,
     V6_0 = 2,
@@ -13,7 +14,7 @@ pub enum LineType {
 }
 
 // TODO: make struct attribute access more well defined by removing public access
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Vec2 {
     pub x: f64,
     pub y: f64,
@@ -44,7 +45,7 @@ pub struct SceneryLine {
     pub width: Option<f64>, // TODO: stored within a byte in older LRA builds
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct InternalTrackFormat {
     pub grid_version: GridVersion,
     pub title: String,
