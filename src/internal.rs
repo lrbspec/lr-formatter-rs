@@ -51,6 +51,10 @@ pub struct SceneryLine {
 pub struct InternalTrackFormat {
     pub grid_version: GridVersion,
     pub title: String,
+    pub artist: String,
+    pub description: String,
+    pub duration: u32,
+    pub script: String,
     pub simulation_lines: Vec<SimulationLine>,
     pub scenery_lines: Vec<SceneryLine>,
     pub start_position: Vec2,
