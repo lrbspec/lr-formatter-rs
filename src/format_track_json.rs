@@ -21,12 +21,15 @@ struct JsonLine {
     y1: f64,
     x2: f64,
     y2: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
     flipped: Option<bool>,
-    #[serde(rename = "leftExtended")]
+    #[serde(rename = "leftExtended", skip_serializing_if = "Option::is_none")]
     left_ext: Option<bool>,
-    #[serde(rename = "rightExtended")]
+    #[serde(rename = "rightExtended", skip_serializing_if = "Option::is_none")]
     right_ext: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     multiplier: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     width: Option<f64>,
 }
 
@@ -38,8 +41,9 @@ struct JsonLayer {
     name: String,
     visible: bool,
     editable: bool,
-    #[serde(rename = "folderId")]
-    folder_id: FaultyU32,
+    #[serde(rename = "folderId", skip_serializing_if = "Option::is_none")]
+    folder_id: Option<FaultyU32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     size: Option<u32>,
 }
 
@@ -49,6 +53,7 @@ struct JsonRider {
     start_pos: Vec2,
     #[serde(rename = "startVelocity")]
     start_vel: Vec2,
+    #[serde(skip_serializing_if = "Option::is_none")]
     angle: Option<f64>,
     remountable: bool,
 }

@@ -120,7 +120,7 @@ pub fn parse_lrb(data: &[u8]) -> Result<InternalTrackFormat> {
     let mod_count = cursor.read_u16::<LittleEndian>()?;
 
     // Mod table
-    for _ in [0..mod_count] {
+    for _ in 0..mod_count {
         // Name
         let name = parse_string(&mut cursor, StringLength::U8)?;
 
@@ -192,7 +192,7 @@ pub fn parse_lrb(data: &[u8]) -> Result<InternalTrackFormat> {
             }
             "base.scnline" => {
                 let num_lines = cursor.read_u32::<LittleEndian>()?;
-                for _ in [0..num_lines] {
+                for _ in 0..num_lines {
                     let id = cursor.read_u32::<LittleEndian>()?;
                     let x1 = cursor.read_f64::<LittleEndian>()?;
                     let y1 = cursor.read_f64::<LittleEndian>()?;
@@ -214,7 +214,7 @@ pub fn parse_lrb(data: &[u8]) -> Result<InternalTrackFormat> {
             }
             "base.simline" => {
                 let num_lines = cursor.read_u32::<LittleEndian>()?;
-                for _ in [0..num_lines] {
+                for _ in 0..num_lines {
                     let id = cursor.read_u32::<LittleEndian>()?;
                     let line_flags = SimLineFlags::from_bits(cursor.read_u8()?)
                         .context("Read invalid simulation line flags!")?;
@@ -247,7 +247,7 @@ pub fn parse_lrb(data: &[u8]) -> Result<InternalTrackFormat> {
                     });
                 }
             }
-            "base.startpos" => {
+            "base.startoffset" => {
                 let x = cursor.read_f64::<LittleEndian>()?;
                 let y = cursor.read_f64::<LittleEndian>()?;
                 parsed_track.start_position = Vec2 { x, y };
