@@ -1,11 +1,14 @@
-pub mod format;
 pub mod format_lrb;
 pub mod format_track_json;
 pub mod internal;
 
-use format::Format;
 use format_lrb::{parse_lrb, write_lrb};
 use format_track_json::{parse_track_json, write_track_json};
+
+pub enum Format {
+    TrackJson,
+    LRB,
+}
 
 pub fn convert(input: &[u8], from: Format, to: Format) -> Result<Vec<u8>, String> {
     let internal_format = match from {

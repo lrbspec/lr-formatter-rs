@@ -1,5 +1,5 @@
 use clap::Parser;
-use lr_formatter_rs::{convert, format::Format};
+use lr_formatter_rs::{convert, Format};
 use std::error::Error;
 use std::fs::File;
 use std::io::{Read, Write};
