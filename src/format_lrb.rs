@@ -114,7 +114,7 @@ pub fn parse_lrb(data: &[u8]) -> Result<InternalTrackFormat> {
     }
 
     // Version
-    let _version = cursor.read_u8()?; // TODO: Implement separate parse function for each file version?
+    let _version = cursor.read_u8()?;
 
     // Number of mods
     let mod_count = cursor.read_u16::<LittleEndian>()?;
