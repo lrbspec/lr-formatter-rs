@@ -38,7 +38,7 @@ pub struct SimulationLine {
     pub flipped: bool,
     pub left_extension: bool,
     pub right_extension: bool,
-    pub multiplier: Option<f64>, // TODO: stored within a byte in older LRA builds
+    pub multiplier: Option<f64>,
 }
 
 #[derive(Debug, Clone)]
