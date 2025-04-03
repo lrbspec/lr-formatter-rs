@@ -46,32 +46,32 @@ const SUPPORTED_MODS: [LRBMod; 5] = [
     LRBMod {
         name: "base.gridver",
         version: 0,
-        flags: join_flags!(EXTRA_DATA),
-        optional_message: None,
+        flags: join_flags!(OPTIONAL, EXTRA_DATA, PHYSICS),
+        optional_message: Some("specifies grid algorithm (modifies physics)"),
     },
     LRBMod {
         name: "base.label",
         version: 0,
         flags: join_flags!(OPTIONAL, EXTRA_DATA),
-        optional_message: Some("Track label not loaded (optional)"),
+        optional_message: Some("contains track name"),
     },
     LRBMod {
         name: "base.scnline",
         version: 0,
-        flags: join_flags!(EXTRA_DATA),
-        optional_message: None,
+        flags: join_flags!(OPTIONAL, EXTRA_DATA, SCENERY),
+        optional_message: Some("contains scenery lines"),
     },
     LRBMod {
         name: "base.simline",
         version: 0,
-        flags: join_flags!(EXTRA_DATA),
-        optional_message: None,
+        flags: join_flags!(OPTIONAL, EXTRA_DATA, PHYSICS, SCENERY),
+        optional_message: Some("contains physics lines, affects both physics and visuals"),
     },
     LRBMod {
         name: "base.startoffset",
         version: 0,
-        flags: join_flags!(EXTRA_DATA),
-        optional_message: None,
+        flags: join_flags!(OPTIONAL, EXTRA_DATA, PHYSICS),
+        optional_message: Some("determines starting position, affects physics"),
     },
 ];
 
