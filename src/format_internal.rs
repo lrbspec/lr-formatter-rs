@@ -44,7 +44,7 @@ pub struct SimulationLine {
 #[derive(Debug, Clone)]
 pub struct SceneryLine {
     pub base_line: Line,
-    pub width: Option<f64>, // TODO: stored within a byte in older LRA builds
+    pub width: Option<f64>,
 }
 
 #[derive(Debug, Clone, Default)]
