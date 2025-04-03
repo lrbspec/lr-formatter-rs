@@ -149,7 +149,7 @@ pub fn parse_lrb(data: &[u8]) -> Result<InternalTrackFormat> {
 
         let supported = SUPPORTED_MODS
             .iter()
-            .any(|supported_mod| supported_mod.name == name);
+            .any(|supported_mod| supported_mod.name == name && supported_mod.version == version);
 
         if !supported {
             if flags.contains(ModFlags::OPTIONAL) {
