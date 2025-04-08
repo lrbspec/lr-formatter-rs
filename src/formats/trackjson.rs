@@ -1,4 +1,3 @@
-use crate::formats::internal::Vec2;
 use serde::{Deserialize, Serialize};
 
 pub mod reader;
@@ -10,6 +9,12 @@ pub mod writer;
 enum FaultyU32 {
     Valid(u32),
     Invalid(i32),
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct Vec2 {
+    pub x: f64,
+    pub y: f64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

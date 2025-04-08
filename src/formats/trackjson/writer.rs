@@ -1,4 +1,4 @@
-use super::{JsonLayer, JsonLine, JsonRider, JsonTrack};
+use super::{JsonLayer, JsonLine, JsonRider, JsonTrack, Vec2};
 use crate::formats::internal::{GridVersion, InternalTrackFormat, LineType};
 use anyhow::Result;
 
@@ -49,10 +49,15 @@ pub fn write(internal: &InternalTrackFormat) -> Result<String> {
         });
     }
 
+    let start_pos = Vec2 {
+        x: internal.start_position.x,
+        y: internal.start_position.y,
+    };
+
     let track = JsonTrack {
         label: internal.title.clone(),
         version,
-        start_pos: internal.start_position.clone(),
+        start_pos,
         lines,
         creator: internal.artist.clone(),
         description: internal.description.clone(),

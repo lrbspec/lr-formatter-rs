@@ -1,5 +1,3 @@
-use serde::{Deserialize, Serialize};
-
 #[derive(Debug, Clone, Default)]
 pub enum GridVersion {
     #[default]
@@ -15,7 +13,7 @@ pub enum LineType {
     GREEN = 2,
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default)]
 pub struct Vec2 {
     pub x: f64,
     pub y: f64,

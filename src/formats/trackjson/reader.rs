@@ -1,6 +1,6 @@
 use super::JsonTrack;
 use crate::formats::internal::{
-    GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine,
+    GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine, Vec2,
 };
 use anyhow::{Result, anyhow};
 
@@ -56,10 +56,15 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat> {
         }
     }
 
+    let start_position = Vec2 {
+        x: track.start_pos.x,
+        y: track.start_pos.y,
+    };
+
     Ok(InternalTrackFormat {
         title: track.label,
         grid_version,
-        start_position: track.start_pos,
+        start_position,
         scenery_lines,
         simulation_lines,
         artist: track.creator,
