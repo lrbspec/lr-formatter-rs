@@ -1,13 +1,7 @@
 pub mod formats;
 
 use anyhow::Result;
-use formats::lrb;
-use formats::trackjson;
-
-pub enum Format {
-    TrackJson,
-    LRB,
-}
+use formats::{Format, lrb, trackjson};
 
 pub fn convert(input: &[u8], from: Format, to: Format) -> Result<Vec<u8>> {
     let internal_format = match from {

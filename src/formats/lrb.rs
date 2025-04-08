@@ -1,7 +1,9 @@
-use bitflags::bitflags;
-
+pub mod base;
+pub mod common;
 pub mod reader;
 pub mod writer;
+
+use bitflags::bitflags;
 
 bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -1,5 +1,5 @@
 use super::JsonTrack;
-use crate::formats::internal::{
+use crate::formats::{
     GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine, Vec2,
 };
 use anyhow::{Result, anyhow};

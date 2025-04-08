@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
-
 pub mod reader;
 pub mod writer;
+
+use serde::{Deserialize, Serialize};
 
 // A u32 value that can take the range of a normal u32, or -1 for invalid (for parsing some json fields)
 #[derive(Debug, Serialize, Deserialize)]
@@ -12,9 +12,9 @@ enum FaultyU32 {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct Vec2 {
-    pub x: f64,
-    pub y: f64,
+struct Vec2 {
+    x: f64,
+    y: f64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

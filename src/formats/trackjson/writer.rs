@@ -1,5 +1,5 @@
 use super::{JsonLayer, JsonLine, JsonRider, JsonTrack, Vec2};
-use crate::formats::internal::{GridVersion, InternalTrackFormat, LineType};
+use crate::formats::{GridVersion, InternalTrackFormat, LineType};
 use anyhow::Result;
 
 pub fn write(internal: &InternalTrackFormat) -> Result<String> {

@@ -1,5 +1,5 @@
 use super::{ModFlags, SUPPORTED_MODS, SimLineFlags};
-use crate::formats::internal::{GridVersion, InternalTrackFormat, LineType};
+use crate::formats::{GridVersion, InternalTrackFormat, LineType};
 use anyhow::{Result, anyhow};
 use byteorder::{LittleEndian, WriteBytesExt};
 use std::{
