@@ -4,7 +4,7 @@ use crate::formats::internal::{
 };
 use anyhow::{Result, anyhow};
 
-pub fn read_track_json(json_str: &str) -> Result<InternalTrackFormat> {
+pub fn read(json_str: &str) -> Result<InternalTrackFormat> {
     let track: JsonTrack = serde_json::from_str(json_str)?;
 
     let grid_version = match track.version.as_str() {

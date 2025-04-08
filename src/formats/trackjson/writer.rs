@@ -2,7 +2,7 @@ use super::{JsonLayer, JsonLine, JsonRider, JsonTrack};
 use crate::formats::internal::{GridVersion, InternalTrackFormat, LineType};
 use anyhow::Result;
 
-pub fn write_track_json(internal: &InternalTrackFormat) -> Result<String> {
+pub fn write(internal: &InternalTrackFormat) -> Result<String> {
     let version = match internal.grid_version {
         GridVersion::V6_0 => String::from("6.0"),
         GridVersion::V6_1 => String::from("6.1"),

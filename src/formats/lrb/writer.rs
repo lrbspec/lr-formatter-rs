@@ -7,7 +7,7 @@ use std::{
     io::{Cursor, Seek, SeekFrom, Write},
 };
 
-pub fn write_lrb(internal: &InternalTrackFormat) -> Result<Vec<u8>> {
+pub fn write(internal: &InternalTrackFormat) -> Result<Vec<u8>> {
     let mut buffer = Cursor::new(Vec::new());
     let mut mod_table_entry_offsets: HashMap<String, u64> = HashMap::new();
 

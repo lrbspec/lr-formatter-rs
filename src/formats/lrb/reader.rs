@@ -21,7 +21,7 @@ fn parse_string(cursor: &mut Cursor<&[u8]>, length_type: StringLength) -> Result
     Ok(String::from_utf8(buffer).context("Read invalid UTF-8 string")?)
 }
 
-pub fn read_lrb(data: &[u8]) -> Result<InternalTrackFormat> {
+pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
     let mut cursor = Cursor::new(data);
     let mut parsed_track = InternalTrackFormat {
         ..Default::default()

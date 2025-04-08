@@ -15,7 +15,6 @@ pub enum LineType {
     GREEN = 2,
 }
 
-// TODO: make struct attribute access more well defined by removing public access
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Vec2 {
     pub x: f64,
