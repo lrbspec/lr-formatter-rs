@@ -1,6 +1,9 @@
 pub mod reader;
 pub mod writer;
 
+pub use reader::read;
+pub use writer::write;
+
 use serde::{Deserialize, Serialize};
 
 // A u32 value that can take the range of a normal u32, or -1 for invalid (for parsing some json fields)

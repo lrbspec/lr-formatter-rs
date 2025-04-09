@@ -3,7 +3,18 @@ pub mod common;
 pub mod reader;
 pub mod writer;
 
+use super::InternalTrackFormat;
+use anyhow::{Context, Result};
+use base::{
+    gridver::GRIDVER, label::LABEL, scnline::SCNLINE, simline::SIMLINE, startoffset::STARTOFFSET,
+};
 use bitflags::bitflags;
+use byteorder::{LittleEndian, ReadBytesExt};
+use once_cell::sync::Lazy;
+use std::{
+    collections::HashMap,
+    io::{Cursor, Read},
+};
 
 bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -14,68 +25,52 @@ bitflags! {
         const SCENERY = 1 << 3;
         const EXTRA_DATA = 1 << 4;
     }
-
-    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-    struct SimLineFlags: u8 {
-        const RED = 1 << 0;
-        const INVERTED = 1 << 1;
-        const LEFT_EXTENSION = 1 << 2;
-        const RIGHT_EXTENSION = 1 << 3;
-    }
 }
 
+#[macro_export]
 macro_rules! join_flags {
-    ($($flag:ident),+) => {
-        ModFlags::from_bits_truncate($(ModFlags::$flag.bits() | )+ 0)
-    };
+  ($($flag:ident),+) => {
+    crate::lrb::ModFlags::from_bits_truncate($(crate::lrb::ModFlags::$flag.bits() | )+ 0)
+  };
 }
 
-#[derive(Debug)]
-struct LRBMod {
-    name: &'static str,
-    version: u16,
+pub struct ModHandler {
     flags: ModFlags,
     optional_message: Option<&'static str>,
+    read: Box<dyn Fn(&mut Cursor<&[u8]>, &mut InternalTrackFormat) -> Result<()> + Send + Sync>,
+    write: Box<dyn Fn(&mut Cursor<Vec<u8>>, &InternalTrackFormat) -> Result<()> + Send + Sync>,
 }
 
-const SUPPORTED_MODS: [LRBMod; 5] = [
-    LRBMod {
-        name: "base.gridver",
-        version: 0,
-        flags: join_flags!(OPTIONAL, EXTRA_DATA, PHYSICS),
-        optional_message: Some("specifies grid algorithm (modifies physics)"),
-    },
-    LRBMod {
-        name: "base.label",
-        version: 0,
-        flags: join_flags!(OPTIONAL, EXTRA_DATA),
-        optional_message: Some("contains track name"),
-    },
-    LRBMod {
-        name: "base.scnline",
-        version: 0,
-        flags: join_flags!(OPTIONAL, EXTRA_DATA, SCENERY),
-        optional_message: Some("contains scenery lines"),
-    },
-    LRBMod {
-        name: "base.simline",
-        version: 0,
-        flags: join_flags!(OPTIONAL, EXTRA_DATA, PHYSICS, SCENERY),
-        optional_message: Some("contains physics lines, affects both physics and visuals"),
-    },
-    LRBMod {
-        name: "base.startoffset",
-        version: 0,
-        flags: join_flags!(OPTIONAL, EXTRA_DATA, PHYSICS),
-        optional_message: Some("determines starting position, affects physics"),
-    },
-];
+static SUPPORTED_MODS: Lazy<HashMap<(&'static str, u16), &'static Lazy<ModHandler>>> = Lazy::new(|| {
+    HashMap::from([
+        (("base.gridver", 0), &GRIDVER),
+        (("base.label", 0), &LABEL),
+        (("base.scnline", 0), &SCNLINE),
+        (("base.simline", 0), &SIMLINE),
+        (("base.startoffset", 0), &STARTOFFSET),
+    ])
+});
 
-enum StringLength {
+pub enum StringLength {
     U8,
     U16,
     #[allow(dead_code)]
     U32,
     #[allow(dead_code)]
     Fixed(usize),
+}
+
+// Generalized function for reading strings
+pub fn parse_string(cursor: &mut Cursor<&[u8]>, length_type: StringLength) -> Result<String> {
+    let length = match length_type {
+        StringLength::U8 => cursor.read_u8()? as usize,
+        StringLength::U16 => cursor.read_u16::<LittleEndian>()? as usize,
+        StringLength::U32 => cursor.read_u32::<LittleEndian>()? as usize,
+        StringLength::Fixed(size) => size,
+    };
+
+    let mut buffer = vec![0; length];
+    cursor.read_exact(&mut buffer)?;
+
+    Ok(String::from_utf8(buffer).context("Read invalid UTF-8 string")?)
 }
