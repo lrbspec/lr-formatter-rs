@@ -9,7 +9,7 @@ pub fn convert(input: &[u8], from: Format, to: Format) -> Result<Vec<u8>> {
             let input_str = String::from_utf8(input.to_vec())?;
             trackjson::read(&input_str)?
         }
-        Format::LRB => lrb::reader::read(input)?,
+        Format::LRB => lrb::read(input)?,
     };
 
     let output_bytes = match to {
@@ -17,7 +17,7 @@ pub fn convert(input: &[u8], from: Format, to: Format) -> Result<Vec<u8>> {
             let json_str = trackjson::write(&internal_format)?;
             json_str.into_bytes()
         }
-        Format::LRB => lrb::writer::write(&internal_format)?,
+        Format::LRB => lrb::write(&internal_format)?,
     };
 
     Ok(output_bytes)
