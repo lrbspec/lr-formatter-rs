@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use clap::Parser;
-use lr_formatter_rs::{Format, convert};
+use lr_formatter_rs::{convert, formats::Format};
 use std::fs::File;
 use std::io::{Read, Write};
 
