@@ -9,8 +9,7 @@ use std::io::Write;
 // label: u16 length string = the track's label
 
 pub static LABEL: Lazy<ModHandler> = Lazy::new(|| ModHandler {
-    flags: join_flags!(OPTIONAL, EXTRA_DATA),
-    optional_message: Some("contains track name"),
+    flags: join_flags!(EXTRA_DATA),
     read: Box::new(|cursor, output| {
         output.title = parse_string(cursor, StringLength::U16)?;
 

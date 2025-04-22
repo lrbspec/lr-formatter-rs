@@ -15,8 +15,7 @@ use once_cell::sync::Lazy;
 // ]
 
 pub static SCNLINE: Lazy<ModHandler> = Lazy::new(|| ModHandler {
-    flags: join_flags!(OPTIONAL, EXTRA_DATA, SCENERY),
-    optional_message: Some("contains scenery lines"),
+    flags: join_flags!(EXTRA_DATA, SCENERY),
     read: Box::new(|cursor, output| {
         let num_lines = cursor.read_u32::<LittleEndian>()?;
 

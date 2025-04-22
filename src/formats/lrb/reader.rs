@@ -49,30 +49,25 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
             _length = cursor.read_u64::<LittleEndian>()?;
         }
 
-        let mut optional_message = String::new();
-        // Optional message
-        if flags.contains(ModFlags::OPTIONAL) {
-            optional_message = parse_string(&mut cursor, StringLength::U8)?;
-        }
-
         let supported = SUPPORTED_MODS
             .keys()
             .any(|supported_mod| supported_mod.0 == name && supported_mod.1 == version);
 
         if !supported {
-            if flags.contains(ModFlags::OPTIONAL) {
-                return Err(anyhow!("Required mod {} was not supported!", name));
+            println!("[WARNING] This mod is not supported: {} v{}", name, version);
+
+            if flags.contains(ModFlags::REQUIRED) {
+                return Err(anyhow!("Required mod found!"));
             }
 
-            println!("[WARNING] This mod is not supported: {optional_message}");
             if flags.contains(ModFlags::SCENERY) {
-                println!("[WARNING] Ignoring it may affect scenery rendering.");
+                println!("Ignoring it may affect scenery rendering.");
             }
             if flags.contains(ModFlags::CAMERA) {
-                println!("[WARNING] Ignoring it may affect camera functionality.");
+                println!("Ignoring it may affect camera functionality.");
             }
             if flags.contains(ModFlags::PHYSICS) {
-                println!("[WARNING] Ignoring it may affect track physics.");
+                println!("Ignoring it may affect track physics.");
             }
         }
 

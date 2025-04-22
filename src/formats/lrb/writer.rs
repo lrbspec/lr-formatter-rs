@@ -43,13 +43,6 @@ pub fn write(internal: &InternalTrackFormat) -> Result<Vec<u8>> {
             cursor.write_u64::<LittleEndian>(0)?;
             cursor.write_u64::<LittleEndian>(0)?;
         }
-
-        // Optional message
-        if flags.contains(ModFlags::OPTIONAL) {
-            let optional_message = SUPPORTED_MODS[mod_identifier].optional_message;
-            cursor.write_u8(optional_message.unwrap().len().try_into()?)?;
-            cursor.write_all(optional_message.unwrap().as_bytes())?;
-        }
     }
 
     for mod_identifer in SUPPORTED_MODS.keys() {
