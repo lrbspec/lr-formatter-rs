@@ -22,7 +22,7 @@ use std::{
 bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     struct ModFlags: u8 {
-        const OPTIONAL = 1 << 0;
+        const REQUIRED = 1 << 0;
         const PHYSICS = 1 << 1;
         const CAMERA = 1 << 2;
         const SCENERY = 1 << 3;
@@ -39,7 +39,6 @@ macro_rules! join_flags {
 
 pub struct ModHandler {
     flags: ModFlags,
-    optional_message: Option<&'static str>,
     read: Box<dyn Fn(&mut Cursor<&[u8]>, &mut InternalTrackFormat) -> Result<()> + Send + Sync>,
     write: Box<dyn Fn(&mut Cursor<Vec<u8>>, &InternalTrackFormat) -> Result<()> + Send + Sync>,
 }

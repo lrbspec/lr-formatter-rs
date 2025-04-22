@@ -29,8 +29,7 @@ bitflags! {
 }
 
 pub static SIMLINE: Lazy<ModHandler> = Lazy::new(|| ModHandler {
-    flags: join_flags!(OPTIONAL, EXTRA_DATA, PHYSICS, SCENERY),
-    optional_message: Some("contains physics lines, affects both physics and visuals"),
+    flags: join_flags!(EXTRA_DATA, PHYSICS, SCENERY),
     read: Box::new(|cursor, output| {
         let num_lines = cursor.read_u32::<LittleEndian>()?;
         for _ in 0..num_lines {

@@ -9,8 +9,7 @@ use once_cell::sync::Lazy;
 // Y: f64 = the Y coordinate of the start offset (remember +Y is down)
 
 pub static STARTOFFSET: Lazy<ModHandler> = Lazy::new(|| ModHandler {
-    flags: join_flags!(OPTIONAL, EXTRA_DATA, PHYSICS),
-    optional_message: Some("determines starting position, affects physics"),
+    flags: join_flags!(EXTRA_DATA, PHYSICS),
     read: Box::new(|cursor, output| {
         let x = cursor.read_f64::<LittleEndian>()?;
         let y = cursor.read_f64::<LittleEndian>()?;

@@ -9,8 +9,7 @@ use once_cell::sync::Lazy;
 // grid version: u8 = the grid algorithm version used by the track
 
 pub static GRIDVER: Lazy<ModHandler> = Lazy::new(|| ModHandler {
-    flags: join_flags!(OPTIONAL, EXTRA_DATA, PHYSICS),
-    optional_message: Some("specifies grid algorithm (modifies physics)"),
+    flags: join_flags!(EXTRA_DATA, PHYSICS),
     read: Box::new(|cursor, output| {
         let grid_version_number = cursor.read_u8()?;
         let grid_version = match grid_version_number {
