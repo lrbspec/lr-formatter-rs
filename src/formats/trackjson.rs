@@ -6,7 +6,7 @@ pub use writer::write;
 
 use serde::{Deserialize, Serialize};
 
-// A u32 value that can take the range of a normal u32, or -1 for invalid (for parsing some json fields)
+// A u32 value that can take the range of a normal u32, or negative for invalid (for parsing some json fields)
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 enum FaultyU32 {
@@ -50,7 +50,7 @@ struct JsonLayer {
     visible: bool,
     editable: bool,
     #[serde(rename = "folderId", skip_serializing_if = "Option::is_none")]
-    folder_id: Option<FaultyU32>,
+    folder_id: Option<FaultyU32>, // -1 if not a folder id
     #[serde(skip_serializing_if = "Option::is_none")]
     size: Option<u32>,
 }

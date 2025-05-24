@@ -83,7 +83,8 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
         let mod_identifier = (name.as_str(), version);
         match SUPPORTED_MODS.get(&mod_identifier) {
             Some(mod_handler) => {
-                (mod_handler.read)(&mut cursor, &mut parsed_track).context("Failed to read mod!")?;
+                (mod_handler.read)(&mut cursor, &mut parsed_track)
+                    .context("Failed to read mod!")?;
             }
             None => {
                 bail!("Came across invalid mod {}!", name)

@@ -43,15 +43,16 @@ pub struct ModHandler {
     write: Box<dyn Fn(&mut Cursor<Vec<u8>>, &InternalTrackFormat) -> Result<()> + Send + Sync>,
 }
 
-static SUPPORTED_MODS: Lazy<HashMap<(&'static str, u16), &'static Lazy<ModHandler>>> = Lazy::new(|| {
-    HashMap::from([
-        (("base.gridver", 0), &GRIDVER),
-        (("base.label", 0), &LABEL),
-        (("base.scnline", 0), &SCNLINE),
-        (("base.simline", 0), &SIMLINE),
-        (("base.startoffset", 0), &STARTOFFSET),
-    ])
-});
+static SUPPORTED_MODS: Lazy<HashMap<(&'static str, u16), &'static Lazy<ModHandler>>> =
+    Lazy::new(|| {
+        HashMap::from([
+            (("base.gridver", 0), &GRIDVER),
+            (("base.label", 0), &LABEL),
+            (("base.scnline", 0), &SCNLINE),
+            (("base.simline", 0), &SIMLINE),
+            (("base.startoffset", 0), &STARTOFFSET),
+        ])
+    });
 
 pub enum StringLength {
     U8,
