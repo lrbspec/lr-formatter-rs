@@ -1,4 +1,4 @@
-use super::LRAJsonTrack;
+use super::{LRAJsonArrayLine, LRAJsonTrack};
 use crate::formats::{
     GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine, Vec2,
 };
@@ -14,52 +14,73 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat> {
         other => return Err(anyhow!("Invalid grid version {} when parsing json!", other)),
     };
 
-    let mut scenery_lines = Vec::<SceneryLine>::new();
-    let mut simulation_lines = Vec::<SimulationLine>::new();
-
-    for line in track.line_array {
-        let line_type = match line.line_type {
-            0 => LineType::BLUE,
-            1 => LineType::RED,
-            2 => LineType::GREEN,
-            other => return Err(anyhow!("Json line had invalid line type {}!", other)),
-        };
-
-        let base_line = Line {
-            id: line.id,
-            x1: line.x1,
-            y1: line.y1,
-            x2: line.x2,
-            y2: line.y2,
-            line_type,
-        };
-
-        if line.line_type == 2 {
-            scenery_lines.push(SceneryLine {
-                base_line,
-                width: None,
-            });
-        } else {
-            simulation_lines.push(SimulationLine {
-                base_line,
-                flipped: line
-                    .flipped
-                    .ok_or_else(|| anyhow!("Json simline did not have flipped attribute!"))?,
-                left_extension: line.left_ext.ok_or_else(|| {
-                    anyhow!("Json simline did not have left_extension attribute!")
-                })?,
-                right_extension: line.right_ext.ok_or_else(|| {
-                    anyhow!("Json simline did not have right_extension attribute!")
-                })?,
-                multiplier: None,
-            });
-        }
-    }
-
     let start_position = Vec2 {
         x: track.start_pos.x,
         y: track.start_pos.y,
     };
+
+    let mut scenery_lines = Vec::<SceneryLine>::new();
+    let mut simulation_lines = Vec::<SimulationLine>::new();
+
+    for line in track.line_array {
+        match line {
+            LRAJsonArrayLine::BlueLine(id, x1, y1, x2, y2, extended, flipped) => {
+                let base_line = Line {
+                    id,
+                    x1,
+                    y1,
+                    x2,
+                    y2,
+                    line_type: LineType::BLUE,
+                };
+
+                simulation_lines.push(SimulationLine {
+                    base_line,
+                    flipped,
+                    left_extension: extended == 1 || extended == 3,
+                    right_extension: extended == 2 || extended == 3,
+                    multiplier: None,
+                });
+            }
+            LRAJsonArrayLine::RedLine(id, x1, y1, x2, y2, extended, flipped, _, _, multiplier) => {
+                let base_line = Line {
+                    id,
+                    x1,
+                    y1,
+                    x2,
+                    y2,
+                    line_type: LineType::RED,
+                };
+
+                simulation_lines.push(SimulationLine {
+                    base_line,
+                    flipped,
+                    left_extension: extended == 1 || extended == 3,
+                    right_extension: extended == 2 || extended == 3,
+                    multiplier: Some(multiplier as f64),
+                });
+            }
+            LRAJsonArrayLine::GreenLine(id, x1, y1, x2, y2) => {
+                let base_line = Line {
+                    id,
+                    x1,
+                    y1,
+                    x2,
+                    y2,
+                    line_type: LineType::GREEN,
+                };
+
+                scenery_lines.push(SceneryLine {
+                    base_line,
+                    width: None,
+                });
+            }
+        }
+    }
+
+    // TODO: These fields need parsing into the internal format still
+    // start_zoom, zero_start, line_based_triggers, time_based_triggers, x_gravity, y_gravity, gravity_well_size,
+    // background_color_red/green/blue, line_color_red/green/blue
 
     Ok(InternalTrackFormat {
         title: track.label,
@@ -67,5 +88,6 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat> {
         start_position,
         scenery_lines,
         simulation_lines,
+        ..Default::default()
     })
 }
