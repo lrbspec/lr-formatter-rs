@@ -24,11 +24,11 @@ struct Vec2 {
 
 // LRA line array types:
 // [type: 0, id: int, x1: double, y1: double, x2: double, y2: double, extended: u8, flipped: bool]
-// [type: 1, id: int, x1: double, y1: double, x2: double, y2: double, extended: u8, flipped: bool, -1, -1, multiplier: int]
+// [type: 1, id: int, x1: double, y1: double, x2: double, y2: double, extended: u8, flipped: bool, _?: -1, _?: -1, multiplier?: int]
 // [type: 2, id: int, x1: double, y1: double, x2: double, y2: double]
-// Extended bitflags 0b000000ab
-// a: 1 if ending/right extension
-// b: 1 if starting/left extension
+// Extended bitflags 0b000000ba
+// a: 1 if starting/left extension
+// b: 1 if ending/right extension
 #[derive(Debug)]
 enum LRAJsonArrayLine {
     BlueLine(u32, f64, f64, f64, f64, u8, bool),
@@ -51,7 +51,7 @@ impl<'de> Visitor<'de> for LRAJsonArrayLineVisitor {
     type Value = LRAJsonArrayLine;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("an array representing a tagged Entry")
+        formatter.write_str("an array representing a line")
     }
 
     fn visit_seq<A>(self, mut seq: A) -> Result<LRAJsonArrayLine, A::Error>
@@ -111,8 +111,31 @@ impl<'de> Visitor<'de> for LRAJsonArrayLineVisitor {
                 let flipped: bool = seq
                     .next_element()?
                     .ok_or_else(|| DeError::invalid_length(7, &self))?;
+
+                let mut multiplier: u32 = 1;
+                match seq.next_element::<serde::de::IgnoredAny>()? {
+                    Some(_) => {
+                        let _: serde::de::IgnoredAny = seq
+                            .next_element()?
+                            .ok_or_else(|| DeError::invalid_length(9, &self))?;
+                        multiplier = seq
+                            .next_element()?
+                            .ok_or_else(|| DeError::invalid_length(10, &self))?;
+                    }
+                    None => {}
+                }
+
                 Ok(LRAJsonArrayLine::RedLine(
-                    id, x1, y1, x2, y2, extended, flipped, (), (), 1,
+                    id,
+                    x1,
+                    y1,
+                    x2,
+                    y2,
+                    extended,
+                    flipped,
+                    (),
+                    (),
+                    multiplier,
                 ))
             }
             2 => {
@@ -177,7 +200,7 @@ struct LRAJsonTrack {
     version: String,
     #[serde(rename = "startPosition")]
     start_pos: Vec2,
-    #[serde(rename = "lineArray")]
+    #[serde(rename = "linesArray")]
     line_array: Vec<LRAJsonArrayLine>,
     #[serde(rename = "startZoom")]
     start_zoom: Option<f32>,

@@ -21,8 +21,9 @@ fn parse_format(format: &str) -> Result<Format> {
     match format.to_lowercase().as_str() {
         "trackjson" => Ok(Format::TrackJson),
         "lrb" => Ok(Format::LRB),
+        "lrajson" => Ok(Format::LRAJson),
         _ => Err(anyhow::anyhow!(
-            "Invalid format '{}'. Must be one of: trackjson, lrb",
+            "Invalid format '{}'. Must be one of: trackjson, lrb, lrajson",
             format
         )),
     }
