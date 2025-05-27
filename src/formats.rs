@@ -1,9 +1,11 @@
+pub mod lrajson;
 pub mod lrb;
 pub mod trackjson;
 
 pub enum Format {
     TrackJson,
     LRB,
+    LRAJson,
 }
 
 #[derive(Debug, Clone, Default)]

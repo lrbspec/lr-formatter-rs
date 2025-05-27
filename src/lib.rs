@@ -1,7 +1,7 @@
 pub mod formats;
 
 use anyhow::Result;
-use formats::{Format, lrb, trackjson};
+use formats::{Format, lrajson, lrb, trackjson};
 
 pub fn convert(input: &[u8], from: Format, to: Format) -> Result<Vec<u8>> {
     let internal_format = match from {
@@ -10,15 +10,22 @@ pub fn convert(input: &[u8], from: Format, to: Format) -> Result<Vec<u8>> {
             trackjson::read(&input_str)?
         }
         Format::LRB => lrb::read(input)?,
+        Format::LRAJson => {
+            let input_str = String::from_utf8(input.to_vec())?;
+            lrajson::read(&input_str)?
+        }
     };
 
     let output_bytes = match to {
         Format::TrackJson => {
             let json_str = trackjson::write(&internal_format)?;
-            json_str.into_bytes()
+            Ok(json_str.into_bytes())
         }
-        Format::LRB => lrb::write(&internal_format)?,
+        Format::LRB => lrb::write(&internal_format),
+        _ => Err(anyhow::anyhow!(
+            "Unsupported to format. Must be one of: trackjson, lrb",
+        )),
     };
 
-    Ok(output_bytes)
+    output_bytes
 }
