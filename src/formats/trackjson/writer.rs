@@ -67,5 +67,5 @@ pub fn write(internal: &InternalTrackFormat) -> Result<String> {
         riders: Vec::<JsonRider>::new(),
     };
 
-    Ok(serde_json::to_string_pretty(&track)?)
+    Ok(serde_json::to_string(&track)?)
 }

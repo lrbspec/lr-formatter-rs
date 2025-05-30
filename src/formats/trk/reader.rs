@@ -43,7 +43,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
     let feature_string = parse_string(&mut cursor, StringLength::U16)?;
     let mut included_features: HashSet<&str> = Default::default();
 
-    for feature in feature_string.split(';') {
+    for feature in feature_string.split(';').filter(|s| !s.is_empty()) {
         if KNOWN_FEATURES.contains(feature) {
             included_features.insert(feature);
         } else {
