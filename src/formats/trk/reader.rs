@@ -75,6 +75,8 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
 
     let line_count = cursor.read_u32::<LittleEndian>()?;
 
+    let mut max_id = 0;
+
     for _ in 0..line_count {
         let mut line_id: u32 = 0;
         let flags = cursor.read_u8()?;
@@ -116,6 +118,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
             }
 
             line_id = cursor.read_u32::<LittleEndian>()?;
+            max_id = max_id.max(line_id);
 
             if line_ext != 0 {
                 _ = cursor.read_i32::<LittleEndian>()?; // Prev line id or -1
@@ -146,11 +149,16 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
             parsed_track.simulation_lines.push(SimulationLine {
                 base_line,
                 flipped: line_inv,
-                left_extension: line_ext & 0x2 != 0,
-                right_extension: line_ext & 0x1 != 0,
+                left_extension: line_ext & 0x1 != 0,
+                right_extension: line_ext & 0x2 != 0,
                 multiplier: line_multiplier,
             });
         }
+    }
+
+    for line in parsed_track.scenery_lines.iter_mut() {
+        max_id += 1;
+        line.base_line.id = max_id;
     }
 
     // TODO: remount, zero start, frictionless

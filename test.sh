@@ -1,1 +1,0 @@
-cargo run -- test.trk trk trackjson test.track.json
