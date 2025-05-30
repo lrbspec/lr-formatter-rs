@@ -9,6 +9,7 @@ use serde::{
 };
 
 // A u32 value that can take the range of a normal u32, or negative for invalid (for parsing some json fields)
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 enum FaultyU32 {
@@ -47,6 +48,7 @@ impl<'de> Deserialize<'de> for LRAJsonArrayLine {
 
 struct LRAJsonArrayLineVisitor;
 
+// TODO move this into util file
 impl<'de> Visitor<'de> for LRAJsonArrayLineVisitor {
     type Value = LRAJsonArrayLine;
 
@@ -161,6 +163,7 @@ impl<'de> Visitor<'de> for LRAJsonArrayLineVisitor {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize, Debug)]
 struct LRAJsonLegacyZoomTrigger {
     #[serde(rename = "ID")]
@@ -172,6 +175,7 @@ struct LRAJsonLegacyZoomTrigger {
 
 // Faulty U32's are used here whenever properties are -999, which
 // represents undefined/unused in the LRA json trigger format
+#[allow(dead_code)]
 #[derive(Deserialize, Debug)]
 struct LRAJsonTrigger {
     #[serde(rename = "triggerType")]
@@ -194,6 +198,7 @@ struct LRAJsonTrigger {
     line_blue: Option<FaultyU32>,
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize, Debug)]
 struct LRAJsonTrack {
     label: String,

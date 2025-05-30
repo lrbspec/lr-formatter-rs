@@ -1,7 +1,8 @@
 pub mod formats;
+pub mod util;
 
 use anyhow::Result;
-use formats::{Format, lrajson, lrb, trackjson};
+use formats::{Format, lrajson, lrb, trackjson, trk};
 
 pub fn convert(input: &[u8], from: Format, to: Format) -> Result<Vec<u8>> {
     let internal_format = match from {
@@ -14,6 +15,7 @@ pub fn convert(input: &[u8], from: Format, to: Format) -> Result<Vec<u8>> {
             let input_str = String::from_utf8(input.to_vec())?;
             lrajson::read(&input_str)?
         }
+        Format::TRK => trk::read(input)?,
     };
 
     let output_bytes = match to {

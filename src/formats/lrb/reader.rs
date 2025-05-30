@@ -1,7 +1,7 @@
 use super::{ModFlags, SUPPORTED_MODS};
-use crate::formats::{
-    InternalTrackFormat,
-    lrb::{StringLength, parse_string},
+use crate::{
+    formats::InternalTrackFormat,
+    util::{StringLength, parse_string},
 };
 use anyhow::{Context, Result, anyhow, bail};
 use byteorder::{LittleEndian, ReadBytesExt};

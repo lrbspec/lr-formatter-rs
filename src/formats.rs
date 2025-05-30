@@ -1,11 +1,13 @@
 pub mod lrajson;
 pub mod lrb;
 pub mod trackjson;
+pub mod trk;
 
 pub enum Format {
     TrackJson,
     LRB,
     LRAJson,
+    TRK,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -16,7 +18,7 @@ enum GridVersion {
     V6_0 = 2,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum LineType {
     BLUE = 0,
     RED = 1,

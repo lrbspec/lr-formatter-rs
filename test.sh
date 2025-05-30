@@ -1,0 +1,1 @@
+cargo run -- samples/HAM.trk trk trackjson HAM.track.json
