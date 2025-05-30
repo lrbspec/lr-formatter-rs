@@ -1,6 +1,6 @@
 use std::{
     collections::HashSet,
-    io::{Cursor, Read},
+    io::{Cursor, Read, Seek, SeekFrom},
 };
 
 use anyhow::{Result, anyhow, bail};
@@ -9,14 +9,19 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use crate::{
     formats::{
         GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine,
-        trk::KNOWN_FEATURES,
+        trk::{
+            FEATURE_BACKGROUND_COLOR_B, FEATURE_BACKGROUND_COLOR_G, FEATURE_BACKGROUND_COLOR_R,
+            FEATURE_GRAVITY_WELL_SIZE, FEATURE_LINE_COLOR_B, FEATURE_LINE_COLOR_G,
+            FEATURE_START_ZOOM, FEATURE_TRIGGERS, FEATURE_X_GRAVITY, FEATURE_Y_GRAVITY,
+            KNOWN_FEATURES,
+        },
     },
     util::{StringLength, parse_string},
 };
 
 use super::{
-    FEATURE_6_1, FEATURE_IGNORABLE_TRIGGER, FEATURE_RED_MULTIPLIER, FEATURE_SCENERY_WIDTH,
-    FEATURE_SONG_INFO,
+    FEATURE_6_1, FEATURE_IGNORABLE_TRIGGER, FEATURE_LINE_COLOR_R, FEATURE_RED_MULTIPLIER,
+    FEATURE_SCENERY_WIDTH, FEATURE_SONG_INFO,
 };
 
 pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
@@ -57,7 +62,10 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
 
     if included_features.contains(FEATURE_SONG_INFO) {
         let song_string = parse_string(&mut cursor, StringLength::U8)?;
-        let song_data: Vec<&str> = song_string.split("\r\n").collect();
+        let song_data: Vec<&str> = song_string
+            .split("\r\n")
+            .filter(|s| !s.is_empty())
+            .collect();
 
         if song_data.len() != 2 {
             bail!("Invalid song data!");
@@ -95,10 +103,8 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
         let mut line_scenery_width: Option<f64> = None;
 
         // TODO: Unused
-        #[allow(unused_variables)]
-        let mut line_zoom_target: Option<f32> = None;
-        #[allow(unused_variables)]
-        let mut line_zoom_frames: Option<i16> = None;
+        let mut _line_zoom_target: Option<f32> = None;
+        let mut _line_zoom_frames: Option<i16> = None;
 
         if line_type == LineType::RED && included_features.contains(FEATURE_RED_MULTIPLIER) {
             line_multiplier = Some(cursor.read_u8()? as f64);
@@ -112,8 +118,8 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
             if included_features.contains(FEATURE_IGNORABLE_TRIGGER) {
                 let has_zoom_trigger = cursor.read_u8()?;
                 if has_zoom_trigger == 1 {
-                    line_zoom_target = Some(cursor.read_f32::<LittleEndian>()?);
-                    line_zoom_frames = Some(cursor.read_i16::<LittleEndian>()?);
+                    _line_zoom_target = Some(cursor.read_f32::<LittleEndian>()?);
+                    _line_zoom_frames = Some(cursor.read_i16::<LittleEndian>()?);
                 }
             }
 
@@ -161,7 +167,133 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
         line.base_line.id = max_id;
     }
 
-    // TODO: remount, zero start, frictionless
+    let current = cursor.stream_position()?;
+    let end = cursor.seek(SeekFrom::End(0))?;
+    cursor.seek(SeekFrom::Start(current))?;
+
+    // TODO: REMOUNT, ZEROSTART, FRICTIONLESS
+
+    if current == end {
+        return Ok(parsed_track);
+    }
+
+    // Metadata section
+
+    let mut meta_magic_number = [0u8; 4];
+    cursor.read_exact(&mut meta_magic_number)?;
+
+    if &meta_magic_number != b"META" {
+        return Err(anyhow!("Read invalid meta magic number!"));
+    }
+
+    let num_entries = cursor.read_u16::<LittleEndian>()?;
+
+    for _ in 0..num_entries {
+        let meta_string = parse_string(&mut cursor, StringLength::U16)?;
+        let key_value_pair: Vec<&str> = meta_string.split("=").filter(|s| !s.is_empty()).collect();
+
+        if key_value_pair.len() != 2 {
+            bail!("Invalid key value pair!");
+        }
+
+        let key = key_value_pair[0];
+        let value = key_value_pair[1];
+
+        // TODO: Unused
+        match key {
+            FEATURE_START_ZOOM => {
+                #[allow(unused_variables)]
+                let start_zoom = value.parse::<f32>()?;
+            }
+            FEATURE_X_GRAVITY => {
+                #[allow(unused_variables)]
+                let x_gravity = value.parse::<f32>()?;
+            }
+            FEATURE_Y_GRAVITY => {
+                #[allow(unused_variables)]
+                let y_gravity = value.parse::<f32>()?;
+            }
+            FEATURE_GRAVITY_WELL_SIZE => {
+                #[allow(unused_variables)]
+                let gravity_well_size = value.parse::<f64>()?;
+            }
+            FEATURE_BACKGROUND_COLOR_R => {
+                #[allow(unused_variables)]
+                let background_color_red = value.parse::<i32>()?;
+            }
+            FEATURE_BACKGROUND_COLOR_G => {
+                #[allow(unused_variables)]
+                let background_color_green = value.parse::<i32>()?;
+            }
+            FEATURE_BACKGROUND_COLOR_B => {
+                #[allow(unused_variables)]
+                let background_color_blue = value.parse::<i32>()?;
+            }
+            FEATURE_LINE_COLOR_R => {
+                #[allow(unused_variables)]
+                let line_color_red = value.parse::<i32>()?;
+            }
+            FEATURE_LINE_COLOR_G => {
+                #[allow(unused_variables)]
+                let line_color_green = value.parse::<i32>()?;
+            }
+            FEATURE_LINE_COLOR_B => {
+                #[allow(unused_variables)]
+                let line_color_blue = value.parse::<i32>()?;
+            }
+            FEATURE_TRIGGERS => {
+                for (i, trigger) in value.split('&').filter(|s| !s.is_empty()).enumerate() {
+                    let values: Vec<&str> = trigger.split(':').filter(|s| !s.is_empty()).collect();
+
+                    if values.len() < 1 {
+                        bail!("Trigger {} was empty", i);
+                    }
+
+                    match values[0] {
+                        "0" => {
+                            // Zoom
+                            #[allow(unused_variables)]
+                            let target_zoom = values[1].parse::<f32>()?;
+                            #[allow(unused_variables)]
+                            let start_frame = values[2].parse::<i32>()?;
+                            #[allow(unused_variables)]
+                            let end_frame = values[3].parse::<i32>()?;
+                        }
+                        "1" => {
+                            // Background Color
+                            #[allow(unused_variables)]
+                            let target_bg_red = values[1].parse::<i32>()?;
+                            #[allow(unused_variables)]
+                            let target_bg_green = values[2].parse::<i32>()?;
+                            #[allow(unused_variables)]
+                            let target_bg_blue = values[3].parse::<i32>()?;
+                            #[allow(unused_variables)]
+                            let start_frame = values[4].parse::<i32>()?;
+                            #[allow(unused_variables)]
+                            let end_frame = values[5].parse::<i32>()?;
+                        }
+                        "2" => {
+                            // Line Color
+                            #[allow(unused_variables)]
+                            let target_line_red = values[1].parse::<i32>()?;
+                            #[allow(unused_variables)]
+                            let target_line_green = values[2].parse::<i32>()?;
+                            #[allow(unused_variables)]
+                            let target_line_blue = values[3].parse::<i32>()?;
+                            #[allow(unused_variables)]
+                            let start_frame = values[4].parse::<i32>()?;
+                            #[allow(unused_variables)]
+                            let end_frame = values[5].parse::<i32>()?;
+                        }
+                        _ => bail!("Trigger {} had invalid type: {}", i, values[0]),
+                    }
+                }
+            }
+            _ => bail!("Unknown meta feature: {}", key),
+        }
+    }
+
+    // TODO: STARTZOOM, XGRAVITY, YGRAVITY, GRAVITYWELLSIZE, BGCOLORR/G/B, LINECOLORR/G/B, TRIGGERS
 
     Ok(parsed_track)
 }
