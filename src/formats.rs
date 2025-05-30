@@ -68,3 +68,12 @@ pub struct InternalTrackFormat {
     scenery_lines: Vec<SceneryLine>,
     start_position: Vec2,
 }
+
+impl InternalTrackFormat {
+    fn filled_default() -> Self {
+        Self {
+            duration: 1200,
+            ..Default::default()
+        }
+    }
+}

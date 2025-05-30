@@ -5,17 +5,15 @@ use crate::formats::{
 use anyhow::{Result, anyhow};
 
 pub fn read(json_str: &str) -> Result<InternalTrackFormat> {
+    let mut parsed_track = InternalTrackFormat::filled_default();
     let track: JsonTrack = serde_json::from_str(json_str)?;
 
-    let grid_version = match track.version.as_str() {
+    parsed_track.grid_version = match track.version.as_str() {
         "6.0" => GridVersion::V6_0,
         "6.1" => GridVersion::V6_1,
         "6.2" => GridVersion::V6_2,
         other => return Err(anyhow!("Invalid grid version {} when parsing json!", other)),
     };
-
-    let mut scenery_lines = Vec::<SceneryLine>::new();
-    let mut simulation_lines = Vec::<SimulationLine>::new();
 
     for line in track.lines {
         let line_type = match line.line_type {
@@ -35,12 +33,12 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat> {
         };
 
         if line.line_type == 2 {
-            scenery_lines.push(SceneryLine {
+            parsed_track.scenery_lines.push(SceneryLine {
                 base_line,
                 width: None,
             });
         } else {
-            simulation_lines.push(SimulationLine {
+            parsed_track.simulation_lines.push(SimulationLine {
                 base_line,
                 flipped: line
                     .flipped
@@ -56,20 +54,16 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat> {
         }
     }
 
-    let start_position = Vec2 {
+    parsed_track.start_position = Vec2 {
         x: track.start_pos.x,
         y: track.start_pos.y,
     };
 
-    Ok(InternalTrackFormat {
-        title: track.label,
-        grid_version,
-        start_position,
-        scenery_lines,
-        simulation_lines,
-        artist: track.creator,
-        description: track.description,
-        duration: track.duration,
-        script: track.script,
-    })
+    parsed_track.title = track.label;
+    parsed_track.artist = track.creator;
+    parsed_track.description = track.description;
+    parsed_track.duration = track.duration;
+    parsed_track.script = track.script;
+
+    Ok(parsed_track)
 }

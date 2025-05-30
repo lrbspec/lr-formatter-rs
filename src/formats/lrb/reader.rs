@@ -8,10 +8,8 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use std::io::{Cursor, Read, Seek, SeekFrom};
 
 pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
+    let mut parsed_track = InternalTrackFormat::filled_default();
     let mut cursor = Cursor::new(data);
-    let mut parsed_track = InternalTrackFormat {
-        ..Default::default()
-    };
 
     // Magic number
     let mut magic_number = [0u8; 3];

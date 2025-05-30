@@ -16,14 +16,12 @@ use crate::{
 
 use super::{
     FEATURE_6_1, FEATURE_IGNORABLE_TRIGGER, FEATURE_RED_MULTIPLIER, FEATURE_SCENERY_WIDTH,
-    FEATURE_SONG_INFO, classic_line_type,
+    FEATURE_SONG_INFO,
 };
 
 pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
+    let mut parsed_track = InternalTrackFormat::filled_default();
     let mut cursor = Cursor::new(data);
-    let mut parsed_track = InternalTrackFormat {
-        ..Default::default()
-    };
 
     // Magic number
     let mut magic_number = [0u8; 4];
@@ -80,11 +78,20 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
     for _ in 0..line_count {
         let mut line_id: u32 = 0;
         let flags = cursor.read_u8()?;
-        let line_type = classic_line_type(flags & 0x1F)?;
+
+        let line_type = match flags & 0x1F {
+            1 => LineType::BLUE,
+            2 => LineType::RED,
+            0 => LineType::GREEN,
+            _ => bail!("Unknown line type!"),
+        };
+
         let line_inv = (flags >> 7) != 0;
-        let line_limit = (flags >> 5) & 0x3;
+        let line_ext = (flags >> 5) & 0x3;
+
         let mut line_multiplier: Option<f64> = None;
         let mut line_scenery_width: Option<f64> = None;
+
         // TODO: Unused
         #[allow(unused_variables)]
         let mut line_zoom_target: Option<f32> = None;
@@ -110,7 +117,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
 
             line_id = cursor.read_u32::<LittleEndian>()?;
 
-            if line_limit != 0 {
+            if line_ext != 0 {
                 _ = cursor.read_i32::<LittleEndian>()?; // Prev line id or -1
                 _ = cursor.read_i32::<LittleEndian>()?; // Next line id or -1
             }
@@ -139,12 +146,14 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
             parsed_track.simulation_lines.push(SimulationLine {
                 base_line,
                 flipped: line_inv,
-                left_extension: line_limit & 0x2 != 0,
-                right_extension: line_limit & 0x1 != 0,
+                left_extension: line_ext & 0x2 != 0,
+                right_extension: line_ext & 0x1 != 0,
                 multiplier: line_multiplier,
             });
         }
     }
+
+    // TODO: remount, zero start, frictionless
 
     Ok(parsed_track)
 }
