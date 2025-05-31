@@ -1,6 +1,7 @@
 use crate::{
-    formats::lrb::{ModHandler, StringLength, parse_string},
+    formats::lrb::ModHandler,
     join_flags,
+    util::{StringLength, parse_string},
 };
 use byteorder::{LittleEndian, WriteBytesExt};
 use once_cell::sync::Lazy;
