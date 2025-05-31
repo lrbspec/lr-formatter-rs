@@ -7,17 +7,13 @@ pub use reader::read;
 pub use writer::write;
 
 use super::InternalTrackFormat;
-use anyhow::{Context, Result};
+use anyhow::Result;
 use base::{
     gridver::GRIDVER, label::LABEL, scnline::SCNLINE, simline::SIMLINE, startoffset::STARTOFFSET,
 };
 use bitflags::bitflags;
-use byteorder::{LittleEndian, ReadBytesExt};
 use once_cell::sync::Lazy;
-use std::{
-    collections::HashMap,
-    io::{Cursor, Read},
-};
+use std::{collections::HashMap, io::Cursor};
 
 bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -53,27 +49,3 @@ static SUPPORTED_MODS: Lazy<HashMap<(&'static str, u16), &'static Lazy<ModHandle
             (("base.startoffset", 0), &STARTOFFSET),
         ])
     });
-
-pub enum StringLength {
-    U8,
-    U16,
-    #[allow(dead_code)]
-    U32,
-    #[allow(dead_code)]
-    Fixed(usize),
-}
-
-// Generalized function for reading strings
-pub fn parse_string(cursor: &mut Cursor<&[u8]>, length_type: StringLength) -> Result<String> {
-    let length = match length_type {
-        StringLength::U8 => cursor.read_u8()? as usize,
-        StringLength::U16 => cursor.read_u16::<LittleEndian>()? as usize,
-        StringLength::U32 => cursor.read_u32::<LittleEndian>()? as usize,
-        StringLength::Fixed(size) => size,
-    };
-
-    let mut buffer = vec![0; length];
-    cursor.read_exact(&mut buffer)?;
-
-    Ok(String::from_utf8(buffer).context("Read invalid UTF-8 string")?)
-}
