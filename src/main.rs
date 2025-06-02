@@ -23,8 +23,9 @@ fn parse_format(format: &str) -> Result<Format> {
         "lrb" => Ok(Format::LRB),
         "lrajson" => Ok(Format::LRAJson),
         "trk" => Ok(Format::TRK),
+        "lrpk" => Ok(Format::LRPK),
         _ => Err(anyhow::anyhow!(
-            "Invalid format '{}'. Must be one of: trackjson, lrb, lrajson, trk",
+            "Invalid format '{}'. Must be one of: trackjson, lrb, lrajson, trk, lrpk",
             format
         )),
     }

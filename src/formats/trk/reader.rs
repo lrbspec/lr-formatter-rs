@@ -64,7 +64,8 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
         let mut song_string_length = 0;
         let mut bit_shift = 0;
 
-        loop { // Read 7BitEncodedInt song string length
+        loop {
+            // Read 7BitEncodedInt song string length
             let byte = cursor.read_u8()?;
             song_string_length |= ((byte & 0x7F) as usize) << bit_shift;
 
@@ -75,8 +76,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
             bit_shift += 7;
         }
 
-        let song_string =
-            parse_string(&mut cursor, StringLength::Fixed(song_string_length))?;
+        let song_string = parse_string(&mut cursor, StringLength::Fixed(song_string_length))?;
         let song_data: Vec<&str> = song_string
             .split("\r\n")
             .filter(|s| !s.is_empty())
