@@ -122,12 +122,12 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
         let mut _line_zoom_frames: Option<i16> = None;
 
         if line_type == LineType::RED && included_features.contains(FEATURE_RED_MULTIPLIER) {
-            line_multiplier = Some(cursor.read_u8()? as f64);
+            line_multiplier = Some(f64::from(cursor.read_u8()?));
         }
 
         if line_type == LineType::GREEN {
             if included_features.contains(FEATURE_SCENERY_WIDTH) {
-                line_scenery_width = Some(cursor.read_u8()? as f64 / 10.0);
+                line_scenery_width = Some(f64::from(cursor.read_u8()?) / 10.0);
             }
         } else {
             if included_features.contains(FEATURE_IGNORABLE_TRIGGER) {

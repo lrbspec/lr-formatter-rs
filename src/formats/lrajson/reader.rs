@@ -55,7 +55,7 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat> {
                     flipped,
                     left_extension: extended == 1 || extended == 3,
                     right_extension: extended == 2 || extended == 3,
-                    multiplier: Some(multiplier as f64),
+                    multiplier: Some(f64::from(multiplier)),
                 });
             }
             LRAJsonArrayLine::GreenLine(id, x1, y1, x2, y2) => {
