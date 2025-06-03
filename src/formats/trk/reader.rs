@@ -64,7 +64,8 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
         let mut song_string_length = 0;
         let mut bit_shift = 0;
 
-        loop { // Read 7BitEncodedInt song string length
+        loop {
+            // Read 7BitEncodedInt song string length
             let byte = cursor.read_u8()?;
             song_string_length |= ((byte & 0x7F) as usize) << bit_shift;
 
@@ -75,8 +76,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
             bit_shift += 7;
         }
 
-        let song_string =
-            parse_string(&mut cursor, StringLength::Fixed(song_string_length))?;
+        let song_string = parse_string(&mut cursor, StringLength::Fixed(song_string_length))?;
         let song_data: Vec<&str> = song_string
             .split("\r\n")
             .filter(|s| !s.is_empty())
@@ -122,12 +122,12 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
         let mut _line_zoom_frames: Option<i16> = None;
 
         if line_type == LineType::RED && included_features.contains(FEATURE_RED_MULTIPLIER) {
-            line_multiplier = Some(cursor.read_u8()? as f64);
+            line_multiplier = Some(f64::from(cursor.read_u8()?));
         }
 
         if line_type == LineType::GREEN {
             if included_features.contains(FEATURE_SCENERY_WIDTH) {
-                line_scenery_width = Some(cursor.read_u8()? as f64 / 10.0);
+                line_scenery_width = Some(f64::from(cursor.read_u8()?) / 10.0);
             }
         } else {
             if included_features.contains(FEATURE_IGNORABLE_TRIGGER) {
