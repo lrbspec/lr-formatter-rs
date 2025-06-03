@@ -32,13 +32,17 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
 
     cursor.seek(SeekFrom::Start(u64::from(directory_list_loc)))?;
 
-    for _ in 0..num_directories {
+    for i in 0..num_directories {
         let lump = parse_string(&mut cursor, StringLength::Fixed(8))?;
         let lump_str = lump.as_str();
         let lump_offset = u64::from(cursor.read_u32::<LittleEndian>()?);
 
         let current_position = cursor.stream_position()?;
         cursor.seek(SeekFrom::Start(lump_offset))?;
+
+        if i == 0 && lump_str != LUMP_VERSION_INFO {
+          bail!("First lump should be {}!", LUMP_VERSION_INFO)
+        }
 
         match lump_str {
             LUMP_VERSION_INFO => {
@@ -125,11 +129,11 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
                 }
             }
             LUMP_RIDER_PROPERTIES => {
-                // TODO: Unused
-                #[allow(unused_variables)]
                 let x_start = cursor.read_f64::<LittleEndian>()?;
-                #[allow(unused_variables)]
                 let y_start = cursor.read_f64::<LittleEndian>()?;
+                // TODO: Each lump adds a new rider, for now just adjust start point
+                parsed_track.start_position.x = x_start;
+                parsed_track.start_position.y = y_start;
             }
             LUMP_TRACK_PROPERTIES => {
                 let track_name = parse_string(&mut cursor, StringLength::U8)?;
@@ -151,6 +155,5 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
         cursor.seek(SeekFrom::Start(current_position))?;
     }
 
-    // TODO: RIDERDEF,
     Ok(parsed_track)
 }
