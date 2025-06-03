@@ -2,12 +2,14 @@ pub mod lrajson;
 pub mod lrb;
 pub mod trackjson;
 pub mod trk;
+pub mod sol;
 
 pub enum Format {
     TrackJson,
     LRB,
     LRAJson,
     TRK,
+    SOL,
 }
 
 #[derive(Debug, Clone, Default)]
