@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use byteorder::{LittleEndian, ReadBytesExt};
+use byteorder::{ByteOrder, ReadBytesExt};
 use std::io::{Cursor, Read};
 
 pub enum StringLength {
@@ -12,11 +12,14 @@ pub enum StringLength {
 }
 
 // Generalized function for reading strings
-pub fn parse_string(cursor: &mut Cursor<&[u8]>, length_type: StringLength) -> Result<String> {
+pub fn parse_string<B: ByteOrder>(
+    cursor: &mut Cursor<&[u8]>,
+    length_type: StringLength,
+) -> Result<String> {
     let length = match length_type {
         StringLength::U8 => cursor.read_u8()? as usize,
-        StringLength::U16 => cursor.read_u16::<LittleEndian>()? as usize,
-        StringLength::U32 => cursor.read_u32::<LittleEndian>()? as usize,
+        StringLength::U16 => cursor.read_u16::<B>()? as usize,
+        StringLength::U32 => cursor.read_u32::<B>()? as usize,
         StringLength::Fixed(size) => size,
     };
 
