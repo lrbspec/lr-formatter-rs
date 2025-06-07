@@ -34,7 +34,6 @@ fn parse_format(format: &str) -> Result<Format> {
 fn run() -> Result<()> {
     let args = Cli::parse();
 
-    // TODO accept sol track index parameter when parsing "from" format
     let from_format = parse_format(&args.from).context("Failed to parse 'from' format")?;
     let to_format = parse_format(&args.to).context("Failed to parse 'to' format")?;
 
