@@ -11,7 +11,7 @@ byteorder = "1.0"
 bitflags = "2.9.0"
 anyhow = "1.0.97"
 once_cell = "1.21.3"
-rml_amf0 = "0.3.0"
+thiserror = "1.0"
 
 [lib]
 name = "lr_formatter_rs"

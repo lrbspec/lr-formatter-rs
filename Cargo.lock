@@ -143,9 +143,9 @@ dependencies = [
  "byteorder",
  "clap",
  "once_cell",
- "rml_amf0",
  "serde",
  "serde_json",
+ "thiserror",
 ]
 
 [[package]]
@@ -182,16 +182,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1885c039570dc00dcb4ff087a89e185fd56bae234ddc7f056a945bf36467248d"
 dependencies = [
  "proc-macro2",
-]
-
-[[package]]
-name = "rml_amf0"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "63551cfcd4d1f42733c190e4b58dd268b1eacb73410d9afbf62784aa12cac240"
-dependencies = [
- "byteorder",
- "thiserror",
 ]
 
 [[package]]

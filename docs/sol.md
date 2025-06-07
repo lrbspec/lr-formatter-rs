@@ -1,7 +1,7 @@
 # SOL Format
 
 - Uses the [Action Message Format v0](https://rtmp.veriskope.com/pdf/amf0-file-format-specification.pdf) for the actual data
-- Assume all values are BigEndian
+- Assume all values are BigEndian per the AMF0 spec
 - This format specification does not detail every flash mod, only Beta 2 v6.0 - v6.2 and LRA
 
 # Header
@@ -18,13 +18,32 @@
 
 # Data
 
-- Default physics version is 6.0, which is before the "version" field was added
-- `startLine` is just the [x, y] values of `startPosition`
-- `level` is the total number of lines
-- `data` is the list of track lines, as line arrays: [x1, y1, x2, y2, ext, flipped, prevLine, nextLine, id, type]
-  - `flipped` is a number in the beta 2 writer, but a boolean in the LRA writer (and .com writer, which is disabled), so parse carefully
-  - `ext` Has bit flags representing line extensions, 0: None, 1: Left, 2: Right, 3: Both
-- `trackData` is a property added by LRA that (at present) only describes whether zero start is enabled
+- `label`
+  - Title of the track object
+- `version`
+  - Grid version of the track
+  - Defaults to 6.0, which is the version before the "version" field was added
+- `startLine`
+  - The [x, y] values denoting start position
+  - Written as an Object instead of ECMAArray in the LRA writer
+- `level`
+  - The total number of lines
+- `data`
+  - The list of track lines, as line arrays: [x1, y1, x2, y2, ext, flipped, prevLineId, nextLineId, id, type]
+  - `flipped`
+    - A number in the beta 2 writer, but a boolean in the LRA writer
+    - 0/false for green lines
+  - `ext`
+    - Bit flags representing line extensions: 0=None, 1=Left, 2=Right, 3=Both
+    - 0 for green lines
+  - `type`
+    - 0 for blue lines, 1 for red lines, and 2 for green lines
+  - `prevLineId`
+    - Id of the previous line, usually ignored by most writers
+  - `nextLineId`
+    - Id of the next line, usually ignored by most writers
+- `trackData`
+  - A property added by LRA that (at present) only describes whether zero start is enabled
 
 [
   {
@@ -32,6 +51,11 @@
     version?: String,
     startLine: [Number (f64), Number (f64)],
     level: Number (u32),
+    trackData: [
+      null,
+      [null, null, null],
+      [null, null, null, null, true]
+    ],
     data: [
       [
         Number (f64),
@@ -47,11 +71,6 @@
       ],
       ...previous lines
     ],
-    trackData: [
-      null,
-      [null, null, null],
-      [null, null, null, null, true]
-    ]
   },
   ...previous tracks
 ]

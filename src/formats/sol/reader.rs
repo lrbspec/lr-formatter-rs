@@ -2,10 +2,12 @@ use std::io::{Cursor, Read};
 
 use anyhow::{Context, Result, anyhow, bail};
 use byteorder::{BigEndian, ReadBytesExt};
-use rml_amf0::deserialize;
 
 use crate::{
-    formats::{GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine},
+    formats::{
+        GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine,
+        sol::amf0::deserialize,
+    },
     util::{StringLength, parse_string},
 };
 
