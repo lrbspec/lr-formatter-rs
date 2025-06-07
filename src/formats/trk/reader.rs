@@ -43,7 +43,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
         return Err(anyhow!("Invalid trk version!"));
     }
 
-    let feature_string = parse_string(&mut cursor, StringLength::U16)?;
+    let feature_string = parse_string::<LittleEndian>(&mut cursor, StringLength::U16)?;
     let mut included_features: HashSet<&str> = Default::default();
 
     for feature in feature_string.split(';').filter(|s| !s.is_empty()) {
@@ -64,7 +64,8 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
         let mut song_string_length = 0;
         let mut bit_shift = 0;
 
-        loop { // Read 7BitEncodedInt song string length
+        loop {
+            // Read 7BitEncodedInt song string length
             let byte = cursor.read_u8()?;
             song_string_length |= ((byte & 0x7F) as usize) << bit_shift;
 
@@ -76,7 +77,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
         }
 
         let song_string =
-            parse_string(&mut cursor, StringLength::Fixed(song_string_length))?;
+            parse_string::<LittleEndian>(&mut cursor, StringLength::Fixed(song_string_length))?;
         let song_data: Vec<&str> = song_string
             .split("\r\n")
             .filter(|s| !s.is_empty())
@@ -204,7 +205,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
     let num_entries = cursor.read_u16::<LittleEndian>()?;
 
     for _ in 0..num_entries {
-        let meta_string = parse_string(&mut cursor, StringLength::U16)?;
+        let meta_string = parse_string::<LittleEndian>(&mut cursor, StringLength::U16)?;
         let key_value_pair: Vec<&str> = meta_string.split("=").filter(|s| !s.is_empty()).collect();
 
         if key_value_pair.len() != 2 {

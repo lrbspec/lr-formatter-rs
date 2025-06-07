@@ -12,7 +12,7 @@ use std::io::Write;
 pub static LABEL: Lazy<ModHandler> = Lazy::new(|| ModHandler {
     flags: join_flags!(EXTRA_DATA),
     read: Box::new(|cursor, output| {
-        output.title = parse_string(cursor, StringLength::U16)?;
+        output.title = parse_string::<LittleEndian>(cursor, StringLength::U16)?;
 
         Ok(())
     }),
