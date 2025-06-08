@@ -2,7 +2,7 @@ pub mod formats;
 pub mod util;
 
 use anyhow::Result;
-use formats::{Format, lrajson, lrb, sol, lrpk, trackjson, trk};
+use formats::{Format, lrajson, lrb, lrpk, sol, trackjson, trk};
 
 pub fn convert(input: &[u8], from: Format, to: Format) -> Result<Vec<u8>> {
     let internal_format = match from {

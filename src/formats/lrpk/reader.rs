@@ -41,7 +41,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
         cursor.seek(SeekFrom::Start(lump_offset))?;
 
         if i == 0 && lump_str != LUMP_VERSION_INFO {
-          bail!("First lump should be {}!", LUMP_VERSION_INFO)
+            bail!("First lump should be {}!", LUMP_VERSION_INFO)
         }
 
         match lump_str {
