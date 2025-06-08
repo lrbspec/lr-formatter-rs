@@ -111,9 +111,10 @@ struct JsonRider {
     start_pos: Vec2,
     #[serde(rename = "startVelocity")]
     start_vel: Vec2,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "startAngle", skip_serializing_if = "Option::is_none")]
     angle: Option<f64>,
-    remountable: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    remountable: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -123,38 +124,38 @@ struct JsonTrack {
     description: Option<String>,
     duration: Option<u32>,
     version: String,
-    #[serde(rename = "startPosition")]
-    start_pos: Vec2,
     lines: Option<Vec<JsonLine>>,
     layers: Option<Vec<JsonLayer>>,
     riders: Option<Vec<JsonRider>>,
     script: Option<String>,
-    #[serde(rename = "linesArray")]
+    #[serde(rename = "startPosition")]
+    start_pos: Vec2,
+    #[serde(rename = "linesArray", skip_serializing_if = "Option::is_none")]
     line_array: Option<Vec<LRAJsonArrayLine>>,
-    #[serde(rename = "startZoom")]
+    #[serde(rename = "startZoom", skip_serializing_if = "Option::is_none")]
     start_zoom: Option<f32>,
-    #[serde(rename = "zeroStart")]
+    #[serde(rename = "zeroStart", skip_serializing_if = "Option::is_none")]
     zero_start: Option<bool>,
-    #[serde(rename = "triggers")]
+    #[serde(rename = "triggers", skip_serializing_if = "Option::is_none")]
     line_based_triggers: Option<Vec<LRAJsonLegacyZoomTrigger>>,
-    #[serde(rename = "gameTriggers")]
+    #[serde(rename = "gameTriggers", skip_serializing_if = "Option::is_none")]
     time_based_triggers: Option<Vec<LRAJsonTrigger>>,
-    #[serde(rename = "xGravity")]
+    #[serde(rename = "xGravity", skip_serializing_if = "Option::is_none")]
     x_gravity: Option<f32>,
-    #[serde(rename = "yGravity")]
+    #[serde(rename = "yGravity", skip_serializing_if = "Option::is_none")]
     y_gravity: Option<f32>,
-    #[serde(rename = "gravityWellSize")]
+    #[serde(rename = "gravityWellSize", skip_serializing_if = "Option::is_none")]
     gravity_well_size: Option<f64>,
-    #[serde(rename = "bgR")]
+    #[serde(rename = "bgR", skip_serializing_if = "Option::is_none")]
     background_color_red: Option<u32>,
-    #[serde(rename = "bgG")]
+    #[serde(rename = "bgG", skip_serializing_if = "Option::is_none")]
     background_color_green: Option<u32>,
-    #[serde(rename = "bgB")]
+    #[serde(rename = "bgB", skip_serializing_if = "Option::is_none")]
     background_color_blue: Option<u32>,
-    #[serde(rename = "lineR")]
+    #[serde(rename = "lineR", skip_serializing_if = "Option::is_none")]
     line_color_red: Option<u32>,
-    #[serde(rename = "lineG")]
+    #[serde(rename = "lineG", skip_serializing_if = "Option::is_none")]
     line_color_green: Option<u32>,
-    #[serde(rename = "lineB")]
+    #[serde(rename = "lineB", skip_serializing_if = "Option::is_none")]
     line_color_blue: Option<u32>,
 }

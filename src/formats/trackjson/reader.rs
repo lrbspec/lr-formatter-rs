@@ -15,7 +15,8 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat> {
         other => return Err(anyhow!("Invalid grid version {} when parsing json!", other)),
     };
 
-    for line in track.lines {
+    if let Some(line_list) = track.lines {
+    for line in line_list {
         let line_type = match line.line_type {
             0 => LineType::BLUE,
             1 => LineType::RED,
@@ -53,9 +54,11 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat> {
             });
         }
     }
+  }
 
     // Legacy line array
-    for line in track.line_array {
+    if let Some(line_list) = track.line_array {
+    for line in line_list {
         match line {
             LRAJsonArrayLine::BlueLine(id, x1, y1, x2, y2, extended, flipped) => {
                 let base_line = Line {
@@ -110,6 +113,7 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat> {
             }
         }
     }
+  }
 
     parsed_track.start_position = Vec2 {
         x: track.start_pos.x,
@@ -117,10 +121,19 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat> {
     };
 
     parsed_track.title = track.label;
-    parsed_track.artist = track.creator;
-    parsed_track.description = track.description;
-    parsed_track.duration = track.duration;
-    parsed_track.script = track.script;
+
+    if let Some(creator) = track.creator {
+      parsed_track.artist = creator;
+    }
+    if let Some(description) = track.description {
+      parsed_track.description = description;
+    }
+    if let Some(duration) = track.duration {
+      parsed_track.duration = duration;
+    }
+    if let Some(script) = track.script {
+      parsed_track.script = script;
+    }
 
     // TODO: These fields need parsing into the internal format still
     // start_zoom, zero_start, line_based_triggers, time_based_triggers, x_gravity, y_gravity, gravity_well_size,
