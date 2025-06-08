@@ -33,7 +33,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
     cursor.seek(SeekFrom::Start(u64::from(directory_list_loc)))?;
 
     for i in 0..num_directories {
-        let lump = parse_string(&mut cursor, StringLength::Fixed(8))?;
+        let lump = parse_string::<LittleEndian>(&mut cursor, StringLength::Fixed(8))?;
         let lump_str = lump.as_str();
         let lump_offset = u64::from(cursor.read_u32::<LittleEndian>()?);
 
