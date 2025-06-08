@@ -1,6 +1,5 @@
 use crate::{
-    formats::lrb::ModHandler,
-    join_flags,
+    formats::lrb::{ModHandler, mod_flags},
     util::{StringLength, parse_string},
 };
 use byteorder::{LittleEndian, WriteBytesExt};
@@ -10,7 +9,7 @@ use std::io::Write;
 // label: u16 length string = the track's label
 
 pub static LABEL: Lazy<ModHandler> = Lazy::new(|| ModHandler {
-    flags: join_flags!(EXTRA_DATA),
+    flags: mod_flags::EXTRA_DATA,
     read: Box::new(|cursor, output| {
         output.title = parse_string::<LittleEndian>(cursor, StringLength::U16)?;
 

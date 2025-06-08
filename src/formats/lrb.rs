@@ -22,13 +22,6 @@ pub mod mod_flags {
     pub const EXTRA_DATA: u8 = 1 << 4;
 }
 
-#[macro_export]
-macro_rules! join_flags {
-  ($($flag:ident),+) => {
-    $(crate::lrb::mod_flags::$flag | )+ 0
-  };
-}
-
 pub struct ModHandler {
     flags: u8,
     read: Box<dyn Fn(&mut Cursor<&[u8]>, &mut InternalTrackFormat) -> Result<()> + Send + Sync>,

@@ -1,6 +1,6 @@
-use crate::{
-    formats::{Line, LineType, SimulationLine, lrb::ModHandler},
-    join_flags,
+use crate::formats::{
+    Line, LineType, SimulationLine,
+    lrb::{ModHandler, mod_flags},
 };
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use once_cell::sync::Lazy;
@@ -24,7 +24,7 @@ mod sim_line_flags {
 }
 
 pub static SIMLINE: Lazy<ModHandler> = Lazy::new(|| ModHandler {
-    flags: join_flags!(EXTRA_DATA, PHYSICS, SCENERY),
+    flags: mod_flags::EXTRA_DATA | mod_flags::PHYSICS | mod_flags::SCENERY,
     read: Box::new(|cursor, output| {
         let num_lines = cursor.read_u32::<LittleEndian>()?;
         for _ in 0..num_lines {
