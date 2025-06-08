@@ -2,9 +2,17 @@ use core::fmt;
 
 use super::LRAJsonArrayLine;
 use serde::{
-    Deserialize, Deserializer,
-    de::{Error as DeError, SeqAccess, Visitor},
+    de::{Error as DeError, SeqAccess, Visitor}, Deserialize, Deserializer, Serialize, ser::Error
 };
+
+impl Serialize for LRAJsonArrayLine {
+    fn serialize<S>(&self, _serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer
+    {
+      Err(S::Error::custom("LRAJsonArrayLine not intended to be serialized"))
+    }
+}
 
 impl<'de> Deserialize<'de> for LRAJsonArrayLine {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -17,7 +25,6 @@ impl<'de> Deserialize<'de> for LRAJsonArrayLine {
 
 struct LRAJsonArrayLineVisitor;
 
-// TODO move this into util file
 impl<'de> Visitor<'de> for LRAJsonArrayLineVisitor {
     type Value = LRAJsonArrayLine;
 
