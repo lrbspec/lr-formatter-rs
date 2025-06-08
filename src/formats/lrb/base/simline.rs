@@ -2,8 +2,6 @@ use crate::{
     formats::{Line, LineType, SimulationLine, lrb::ModHandler},
     join_flags,
 };
-use anyhow::Context;
-use bitflags::bitflags;
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use once_cell::sync::Lazy;
 
@@ -18,14 +16,11 @@ use once_cell::sync::Lazy;
 // ]
 // Line flag defs: A = Red line, B = inverted, C = left extension, D = right extension
 
-bitflags! {
-    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-    struct SimLineFlags: u8 {
-        const RED = 1 << 0;
-        const INVERTED = 1 << 1;
-        const LEFT_EXTENSION = 1 << 2;
-        const RIGHT_EXTENSION = 1 << 3;
-    }
+mod sim_line_flags {
+    pub const RED: u8 = 1 << 0;
+    pub const INVERTED: u8 = 1 << 1;
+    pub const LEFT_EXTENSION: u8 = 1 << 2;
+    pub const RIGHT_EXTENSION: u8 = 1 << 3;
 }
 
 pub static SIMLINE: Lazy<ModHandler> = Lazy::new(|| ModHandler {
@@ -34,20 +29,19 @@ pub static SIMLINE: Lazy<ModHandler> = Lazy::new(|| ModHandler {
         let num_lines = cursor.read_u32::<LittleEndian>()?;
         for _ in 0..num_lines {
             let id = cursor.read_u32::<LittleEndian>()?;
-            let line_flags = SimLineFlags::from_bits(cursor.read_u8()?)
-                .context("Read invalid simulation line flags!")?;
+            let line_flags = cursor.read_u8()?;
             let x1 = cursor.read_f64::<LittleEndian>()?;
             let y1 = cursor.read_f64::<LittleEndian>()?;
             let x2 = cursor.read_f64::<LittleEndian>()?;
             let y2 = cursor.read_f64::<LittleEndian>()?;
-            let line_type = if line_flags.contains(SimLineFlags::RED) {
+            let line_type = if line_flags & sim_line_flags::RED != 0 {
                 LineType::RED
             } else {
                 LineType::BLUE
             };
-            let flipped = line_flags.contains(SimLineFlags::INVERTED);
-            let left_extension = line_flags.contains(SimLineFlags::LEFT_EXTENSION);
-            let right_extension = line_flags.contains(SimLineFlags::RIGHT_EXTENSION);
+            let flipped = line_flags & sim_line_flags::INVERTED != 0;
+            let left_extension = line_flags & sim_line_flags::LEFT_EXTENSION != 0;
+            let right_extension = line_flags & sim_line_flags::RIGHT_EXTENSION != 0;
             let base_line = Line {
                 id,
                 x1,
@@ -70,22 +64,22 @@ pub static SIMLINE: Lazy<ModHandler> = Lazy::new(|| ModHandler {
     write: Box::new(|buffer, internal| {
         buffer.write_u32::<LittleEndian>(internal.simulation_lines.len() as u32)?;
         for simulation_line in &internal.simulation_lines {
-            let mut line_flags = SimLineFlags::empty();
+            let mut line_flags: u8 = 0;
             if simulation_line.base_line.line_type == LineType::RED {
-                line_flags.insert(SimLineFlags::RED);
+                line_flags |= sim_line_flags::RED;
             }
             if simulation_line.flipped {
-                line_flags.insert(SimLineFlags::INVERTED);
+                line_flags |= sim_line_flags::INVERTED;
             }
             if simulation_line.left_extension {
-                line_flags.insert(SimLineFlags::LEFT_EXTENSION);
+                line_flags |= sim_line_flags::LEFT_EXTENSION;
             }
             if simulation_line.right_extension {
-                line_flags.insert(SimLineFlags::RIGHT_EXTENSION);
+                line_flags |= sim_line_flags::RIGHT_EXTENSION;
             }
 
             buffer.write_u32::<LittleEndian>(simulation_line.base_line.id)?;
-            buffer.write_u8(line_flags.bits())?;
+            buffer.write_u8(line_flags)?;
             buffer.write_f64::<LittleEndian>(simulation_line.base_line.x1)?;
             buffer.write_f64::<LittleEndian>(simulation_line.base_line.y1)?;
             buffer.write_f64::<LittleEndian>(simulation_line.base_line.x2)?;
