@@ -20,7 +20,6 @@
   "description"?: string,
   "script"?: string,
   "duration": u32,
-  "audio": null,
   "riders": [
     {
       "startPosition": { "x": f64, "y": f64 },
