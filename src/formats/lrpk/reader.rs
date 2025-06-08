@@ -33,7 +33,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
     cursor.seek(SeekFrom::Start(u64::from(directory_list_loc)))?;
 
     for i in 0..num_directories {
-        let lump = parse_string(&mut cursor, StringLength::Fixed(8))?;
+        let lump = parse_string::<LittleEndian>(&mut cursor, StringLength::Fixed(8))?;
         let lump_str = lump.as_str();
         let lump_offset = u64::from(cursor.read_u32::<LittleEndian>()?);
 
@@ -136,8 +136,8 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
                 parsed_track.start_position.y = y_start;
             }
             LUMP_TRACK_PROPERTIES => {
-                let track_name = parse_string(&mut cursor, StringLength::U8)?;
-                let author_name = parse_string(&mut cursor, StringLength::U8)?;
+                let track_name = parse_string::<LittleEndian>(&mut cursor, StringLength::U8)?;
+                let author_name = parse_string::<LittleEndian>(&mut cursor, StringLength::U8)?;
                 let numeric_grid_type = cursor.read_u8()?;
 
                 parsed_track.title = track_name;
