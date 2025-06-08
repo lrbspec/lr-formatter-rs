@@ -1,6 +1,7 @@
 pub mod lrajson;
 pub mod lrb;
 pub mod lrpk;
+pub mod sol;
 pub mod trackjson;
 pub mod trk;
 
@@ -10,6 +11,7 @@ pub enum Format {
     LRAJson,
     TRK,
     LRPK,
+    SOL(Option<u32>),
 }
 
 #[derive(Debug, Clone, Default)]

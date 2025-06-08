@@ -28,7 +28,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
     // Mod table
     for _ in 0..mod_count {
         // Name
-        let name = parse_string(&mut cursor, StringLength::U8)?;
+        let name = parse_string::<LittleEndian>(&mut cursor, StringLength::U8)?;
 
         // Version
         let version = cursor.read_u16::<LittleEndian>()?;
