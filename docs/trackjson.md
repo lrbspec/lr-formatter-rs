@@ -1,4 +1,4 @@
-# Json (.track.json) Format
+# JSON (.track.json) Format
 
 ```js
 {
