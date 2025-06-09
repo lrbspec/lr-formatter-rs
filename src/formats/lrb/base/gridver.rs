@@ -1,6 +1,6 @@
-use crate::{
-    formats::{GridVersion, lrb::ModHandler},
-    join_flags,
+use crate::formats::{
+    GridVersion,
+    lrb::{ModHandler, mod_flags},
 };
 use anyhow::bail;
 use byteorder::{ReadBytesExt, WriteBytesExt};
@@ -9,7 +9,7 @@ use once_cell::sync::Lazy;
 // grid version: u8 = the grid algorithm version used by the track
 
 pub static GRIDVER: Lazy<ModHandler> = Lazy::new(|| ModHandler {
-    flags: join_flags!(EXTRA_DATA, PHYSICS),
+    flags: mod_flags::EXTRA_DATA | mod_flags::PHYSICS,
     read: Box::new(|cursor, output| {
         let grid_version_number = cursor.read_u8()?;
         let grid_version = match grid_version_number {
