@@ -1,10 +1,9 @@
 [package]
-name = "lr-formatter-rs"
+name = "lr_formatter_rs"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-clap = { version = "4.0", features = ["derive"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 byteorder = "1.0"
@@ -15,7 +14,3 @@ thiserror = "1.0"
 [lib]
 name = "lr_formatter_rs"
 path = "src/lib.rs"
-
-[[bin]]
-name = "lr_formatter_rs_cli"
-path = "src/main.rs"

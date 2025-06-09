@@ -1,0 +1,6 @@
+[dependencies]
+clap = { version = "4.0", features = ["derive"] }
+
+[[bin]]
+name = "lr_formatter_rs_cli"
+path = "src/main.rs"
