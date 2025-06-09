@@ -141,15 +141,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "lr_formatter_rs_cli"
-version = "1.0.0"
-dependencies = [
- "anyhow",
- "clap",
- "lr_formatter_rs",
-]
-
-[[package]]
 name = "memchr"
 version = "2.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -258,6 +249,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "track-converter"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "lr_formatter_rs",
 ]
 
 [[package]]

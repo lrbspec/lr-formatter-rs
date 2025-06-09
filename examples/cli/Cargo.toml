@@ -1,5 +1,5 @@
 [package]
-name = "lr_formatter_rs_cli"
+name = "track-converter"
 version = "1.0.0"
 edition = "2024"
 authors = ["LRB Spec"]
@@ -13,5 +13,5 @@ anyhow = "1.0.97"
 lr_formatter_rs = { path = "../../lib" }
 
 [[bin]]
-name = "lr_formatter_rs_cli"
+name = "track-converter"
 path = "src/main.rs"

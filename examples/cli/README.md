@@ -2,5 +2,5 @@ A basic command line interface that demonstrates using the Line Rider formatter 
 
 Example:
 ```bash
-cargo run -- samples/sample_three_lines.track.json trackjson lrb samples/sample_output.LRB
+build/track-converter samples/sample_three_lines.track.json trackjson lrb samples/sample_output.LRB
 ```
