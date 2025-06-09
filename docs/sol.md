@@ -45,6 +45,7 @@
 - `trackData`
   - A property added by LRA that (at present) only describes whether zero start is enabled
 
+```
 [
   {
     label: String,
@@ -74,3 +75,4 @@
   },
   ...previous tracks
 ]
+```
