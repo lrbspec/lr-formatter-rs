@@ -1,5 +1,6 @@
 [dependencies]
 clap = { version = "4.0", features = ["derive"] }
+lr_formatter_rs = { path = "../../lib" }
 
 [[bin]]
 name = "lr_formatter_rs_cli"
