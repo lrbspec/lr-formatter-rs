@@ -1,6 +1,6 @@
-use crate::{
-    formats::{SceneryLine, lrb::ModHandler},
-    join_flags,
+use crate::formats::{
+    SceneryLine,
+    lrb::{ModHandler, mod_flags},
 };
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use once_cell::sync::Lazy;
@@ -15,7 +15,7 @@ use once_cell::sync::Lazy;
 // ]
 
 pub static SCNLINE: Lazy<ModHandler> = Lazy::new(|| ModHandler {
-    flags: join_flags!(EXTRA_DATA, SCENERY),
+    flags: mod_flags::EXTRA_DATA | mod_flags::SCENERY,
     read: Box::new(|cursor, output| {
         let num_lines = cursor.read_u32::<LittleEndian>()?;
 

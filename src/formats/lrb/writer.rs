@@ -1,4 +1,4 @@
-use super::{ModFlags, SUPPORTED_MODS};
+use super::{SUPPORTED_MODS, mod_flags};
 use crate::formats::InternalTrackFormat;
 use anyhow::{Context, Result};
 use byteorder::{LittleEndian, WriteBytesExt};
@@ -33,10 +33,10 @@ pub fn write(internal: &InternalTrackFormat) -> Result<Vec<u8>> {
 
         // Flags
         let flags = SUPPORTED_MODS[mod_identifier].flags;
-        cursor.write_u8(flags.bits())?;
+        cursor.write_u8(flags)?;
 
         // Data address
-        if flags.contains(ModFlags::EXTRA_DATA) {
+        if flags & mod_flags::EXTRA_DATA != 0 {
             mod_table_entry_offsets.insert(name.to_string(), cursor.stream_position()?);
 
             // Allocate space for data address information

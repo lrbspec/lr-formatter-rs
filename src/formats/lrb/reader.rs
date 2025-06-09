@@ -1,4 +1,4 @@
-use super::{ModFlags, SUPPORTED_MODS};
+use super::{SUPPORTED_MODS, mod_flags};
 use crate::{
     formats::InternalTrackFormat,
     util::{StringLength, parse_string},
@@ -36,13 +36,13 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
         println!("[INFO] Loading mod {name} v{version}");
 
         // Flags
-        let flags = ModFlags::from_bits(cursor.read_u8()?).context("Read invalid mod flags!")?;
+        let flags = cursor.read_u8()?;
 
         let mut offset = 0u64;
         let mut _length = 0u64; // TODO: length is unused
 
         // Data address
-        if flags.contains(ModFlags::EXTRA_DATA) {
+        if flags & mod_flags::EXTRA_DATA != 0 {
             offset = cursor.read_u64::<LittleEndian>()?;
             _length = cursor.read_u64::<LittleEndian>()?;
         }
@@ -54,23 +54,23 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
         if !supported {
             println!("[WARNING] This mod is not supported: {} v{}", name, version);
 
-            if flags.contains(ModFlags::REQUIRED) {
+            if flags & mod_flags::REQUIRED != 0 {
                 return Err(anyhow!("Required mod found!"));
             }
 
-            if flags.contains(ModFlags::SCENERY) {
+            if flags & mod_flags::SCENERY != 0 {
                 println!("Ignoring it may affect scenery rendering.");
             }
-            if flags.contains(ModFlags::CAMERA) {
+            if flags & mod_flags::CAMERA != 0 {
                 println!("Ignoring it may affect camera functionality.");
             }
-            if flags.contains(ModFlags::PHYSICS) {
+            if flags & mod_flags::PHYSICS != 0 {
                 println!("Ignoring it may affect track physics.");
             }
         }
 
         // We're done if there's no more data
-        if !flags.contains(ModFlags::EXTRA_DATA) {
+        if flags & mod_flags::EXTRA_DATA == 0 {
             continue;
         }
 
