@@ -6,7 +6,7 @@ use std::io::{Read, Write};
 
 #[derive(Parser)]
 #[command(
-    version = "1.0",
+    version = "1.0.0",
     author = "LRBSpec",
     about = "CLI for converting Line Rider file formats"
 )]
