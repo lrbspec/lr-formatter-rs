@@ -1,6 +1,10 @@
 A basic command line interface that demonstrates using the Line Rider formatter library.
 
-Example:
+## Running the CLI
+
 ```bash
-build/track-converter samples/sample_three_lines.track.json trackjson lrb samples/sample_output.LRB
+# Windows
+./build/windows/track-converter.exe samples/sample_three_lines.track.json lrb
+# Linux
+build/linux/track-converter samples/sample_three_lines.track.json lrb
 ```
