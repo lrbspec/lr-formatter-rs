@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use byteorder::{ByteOrder, ReadBytesExt};
 use std::io::{Cursor, Read};
 
-pub enum StringLength {
+pub(crate) enum StringLength {
     U8,
     U16,
     #[allow(dead_code)]
@@ -12,7 +12,7 @@ pub enum StringLength {
 }
 
 // Generalized function for reading strings
-pub fn parse_string<B: ByteOrder>(
+pub(crate) fn parse_string<B: ByteOrder>(
     cursor: &mut Cursor<&[u8]>,
     length_type: StringLength,
 ) -> Result<String> {

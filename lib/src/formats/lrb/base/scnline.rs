@@ -1,5 +1,5 @@
 use crate::formats::{
-    SceneryLine,
+    internal::{Line, LineType, SceneryLine},
     lrb::{ModHandler, mod_flags},
 };
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
@@ -14,7 +14,7 @@ use once_cell::sync::Lazy;
 //   y2: f64 = the y position of the 2nd point
 // ]
 
-pub static SCNLINE: Lazy<ModHandler> = Lazy::new(|| ModHandler {
+pub(in crate::formats::lrb) static SCNLINE: Lazy<ModHandler> = Lazy::new(|| ModHandler {
     flags: mod_flags::EXTRA_DATA | mod_flags::SCENERY,
     read: Box::new(|cursor, output| {
         let num_lines = cursor.read_u32::<LittleEndian>()?;
@@ -27,13 +27,13 @@ pub static SCNLINE: Lazy<ModHandler> = Lazy::new(|| ModHandler {
             let y2 = cursor.read_f64::<LittleEndian>()?;
 
             output.scenery_lines.push(SceneryLine {
-                base_line: crate::formats::Line {
+                base_line: Line {
                     id,
                     x1,
                     y1,
                     x2,
                     y2,
-                    line_type: crate::formats::LineType::GREEN,
+                    line_type: LineType::GREEN,
                 },
                 width: None,
             });

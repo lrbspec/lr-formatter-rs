@@ -1,6 +1,19 @@
-pub mod amf0;
-pub mod reader;
-pub mod writer;
+mod amf0;
+mod reader;
+mod writer;
 
 pub use reader::read;
 pub use writer::write;
+
+use byteorder::{BigEndian, ReadBytesExt};
+use std::io::{Cursor, Seek};
+
+pub fn get_track_count(data: &[u8]) -> u32 {
+    let mut cursor = Cursor::new(data);
+
+    // HACK: We assume header size is constant, and track list length will always be at 0x2C - 0x2F
+    let _ = cursor.seek(std::io::SeekFrom::Start(0x2C));
+    let num_tracks = cursor.read_u32::<BigEndian>().unwrap_or(0);
+
+    num_tracks
+}

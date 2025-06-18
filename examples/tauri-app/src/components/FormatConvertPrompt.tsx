@@ -1,54 +1,37 @@
-import { useEffect, useState } from "react";
-
 interface FormatConvertPromptProps {
-  initialFormatFrom: string | null;
-  onFormatFromChange: (format: string) => void;
-  onFormatToChange: (format: string) => void;
+  fromFormat: string;
+  setFromFormat: (format: string) => void;
+  toFormat: string;
+  setToFormat: (format: string) => void;
+  solIndex: number;
+  setSolIndex: (solIndex: number) => void;
+  maxSolIndex: number;
 }
 
 const FormatConvertPrompt: React.FC<FormatConvertPromptProps> = ({
-  initialFormatFrom,
-  onFormatFromChange,
-  onFormatToChange,
+  fromFormat,
+  setFromFormat,
+  toFormat,
+  setToFormat,
+  solIndex,
+  setSolIndex,
+  maxSolIndex,
 }) => {
-  const [formatFrom, setFormatFrom] = useState("TRK");
-  const [formatTo, setFormatTo] = useState("JSON");
-
-  useEffect(() => {
-    if (
-      initialFormatFrom &&
-      ["TRK", "SOL", "JSON", "LRB"].includes(initialFormatFrom)
-    ) {
-      setFormatFrom(initialFormatFrom);
-      onFormatFromChange(initialFormatFrom);
-    }
-  }, [initialFormatFrom]);
-
-  const handleFromChange = (value: string) => {
-    setFormatFrom(value);
-    onFormatFromChange(value);
-  };
-
-  const handleToChange = (value: string) => {
-    setFormatTo(value);
-    onFormatToChange(value);
-  };
-
   const selectStyle: React.CSSProperties = {
-    border: '1px solid #ccc',
-    borderRadius: '0.375rem',
-    padding: '0.25rem 0.5rem',
-    fontSize: '1rem',
-    fontFamily: 'inherit',
-    outline: 'none',
-    cursor: 'pointer',
+    border: "1px solid #ccc",
+    borderRadius: "0.375rem",
+    padding: "0.25rem 0.5rem",
+    fontSize: "1rem",
+    fontFamily: "inherit",
+    outline: "none",
+    cursor: "pointer",
   };
 
   const containerStyle: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    fontSize: '1rem',
+    display: "flex",
+    alignItems: "center",
+    gap: "0.5rem",
+    fontSize: "1rem",
   };
 
   return (
@@ -56,8 +39,8 @@ const FormatConvertPrompt: React.FC<FormatConvertPromptProps> = ({
       <span>Convert</span>
 
       <select
-        value={formatFrom}
-        onChange={(e) => handleFromChange(e.target.value)}
+        value={fromFormat}
+        onChange={(e) => setFromFormat(e.target.value)}
         style={selectStyle}
       >
         <option value="TRK">TRK</option>
@@ -66,11 +49,26 @@ const FormatConvertPrompt: React.FC<FormatConvertPromptProps> = ({
         <option value="LRB">LRB</option>
       </select>
 
+      {fromFormat === "SOL" && (
+        <>
+          <span>track</span>
+          <input
+            type="number"
+            min={0}
+            max={maxSolIndex}
+            step={1}
+            value={solIndex}
+            onChange={(e) => setSolIndex(parseInt(e.target.value))}
+          >
+          </input>
+        </>
+      )}
+
       <span>to</span>
 
       <select
-        value={formatTo}
-        onChange={(e) => handleToChange(e.target.value)}
+        value={toFormat}
+        onChange={(e) => setToFormat(e.target.value)}
         style={selectStyle}
       >
         <option value="SOL">SOL</option>

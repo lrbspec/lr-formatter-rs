@@ -1,5 +1,5 @@
 pub mod formats;
-pub mod util;
+pub(crate) mod util;
 
 use anyhow::Result;
 use formats::{Format, lrb, sol, trackjson, trk};

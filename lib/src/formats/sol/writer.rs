@@ -6,7 +6,7 @@ use std::{
 };
 
 use crate::formats::{
-    GridVersion, InternalTrackFormat, LineType,
+    internal::{GridVersion, InternalTrackFormat, LineType},
     sol::amf0::{Amf0Value, serialize},
 };
 

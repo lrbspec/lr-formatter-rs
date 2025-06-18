@@ -1,6 +1,6 @@
-pub mod serde_line_array;
-pub mod reader;
-pub mod writer;
+mod reader;
+mod serde_line_array;
+mod writer;
 
 pub use reader::read;
 pub use writer::write;

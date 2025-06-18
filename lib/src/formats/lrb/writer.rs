@@ -1,5 +1,5 @@
 use super::{SUPPORTED_MODS, mod_flags};
-use crate::formats::InternalTrackFormat;
+use crate::formats::internal::InternalTrackFormat;
 use anyhow::{Context, Result};
 use byteorder::{LittleEndian, WriteBytesExt};
 use std::{
