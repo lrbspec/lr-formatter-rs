@@ -3,5 +3,9 @@
     "lib/Cargo.toml",
     "examples/cli/Cargo.toml",
     "examples/tauri-app/src-tauri/Cargo.toml"
-  ]
+  ],
+  "editor.formatOnSave": true,
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer"
+  }
 }

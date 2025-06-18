@@ -1,8 +1,8 @@
 //! This module contains functionality to deserialize values from bytes
 //! that were encoded via the AMF0 specification
-//! (http://wwwimages.adobe.com/content/dam/Adobe/en/devnet/amf/pdf/amf0-file-format-specification.pdf)
+//! (<http://wwwimages.adobe.com/content/dam/Adobe/en/devnet/amf/pdf/amf0-file-format-specification.pdf>)
 //!
-//! https://github.com/KallDrexx/rust-media-libs
+//! <https://github.com/KallDrexx/rust-media-libs>
 //! License: See ./LICENSE-APACHE and ./LICENSE-MIT
 
 use super::{Amf0Value, errors::Amf0DeserializationError, markers};
@@ -16,7 +16,9 @@ struct ObjectProperty {
 }
 
 /// Turns any readable byte stream and converts it into an array of AMF0 values
-pub fn deserialize<R: Read>(bytes: &mut R) -> Result<Vec<Amf0Value>, Amf0DeserializationError> {
+pub(in crate::formats::sol) fn deserialize<R: Read>(
+    bytes: &mut R,
+) -> Result<Vec<Amf0Value>, Amf0DeserializationError> {
     let mut results = vec![];
 
     loop {

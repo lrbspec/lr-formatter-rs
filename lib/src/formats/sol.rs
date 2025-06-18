@@ -1,6 +1,6 @@
-pub mod amf0;
-pub mod reader;
-pub mod writer;
+mod amf0;
+mod reader;
+mod writer;
 
 pub use reader::read;
 pub use writer::write;

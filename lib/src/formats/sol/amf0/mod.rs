@@ -2,7 +2,7 @@
 //! based on the Adobe AMF0 encoding specification located at
 //! <https://wwwimages2.adobe.com/content/dam/acom/en/devnet/pdf/amf0-file-format-specification.pdf>
 //!
-//! https://github.com/KallDrexx/rust-media-libs
+//! <https://github.com/KallDrexx/rust-media-libs>
 //! License: See ./LICENSE-APACHE and ./LICENSE-MIT
 //!
 //! # Examples
@@ -36,15 +36,14 @@ mod deserialization;
 mod errors;
 mod serialization;
 
-pub use deserialization::deserialize;
-pub use errors::{Amf0DeserializationError, Amf0SerializationError};
-pub use serialization::serialize;
+pub(super) use deserialization::deserialize;
+pub(super) use serialization::serialize;
 
 use std::collections::HashMap;
 
 /// An Enum representing the different supported types of Amf0 values
 #[derive(PartialEq, Debug, Clone)]
-pub enum Amf0Value {
+pub(super) enum Amf0Value {
     Number(f64),
     Boolean(bool),
     Utf8String(String),

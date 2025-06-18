@@ -1,4 +1,4 @@
-pub mod reader;
+mod reader;
 
 pub use reader::read;
 
@@ -25,7 +25,7 @@ const FEATURE_LINE_COLOR_G: &str = "LINECOLORG";
 const FEATURE_LINE_COLOR_B: &str = "LINECOLORB";
 const FEATURE_TRIGGERS: &str = "TRIGGERS";
 
-pub static KNOWN_FEATURES: Lazy<HashSet<&'static str>> = Lazy::new(|| {
+static KNOWN_FEATURES: Lazy<HashSet<&'static str>> = Lazy::new(|| {
     HashSet::from([
         FEATURE_RED_MULTIPLIER,
         FEATURE_SCENERY_WIDTH,

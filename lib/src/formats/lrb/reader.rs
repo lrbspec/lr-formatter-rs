@@ -1,6 +1,6 @@
 use super::{SUPPORTED_MODS, mod_flags};
 use crate::{
-    formats::InternalTrackFormat,
+    formats::internal::InternalTrackFormat,
     util::{StringLength, parse_string},
 };
 use anyhow::{Context, Result, anyhow, bail};

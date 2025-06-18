@@ -1,5 +1,5 @@
 use crate::formats::{
-    GridVersion,
+    internal::GridVersion,
     lrb::{ModHandler, mod_flags},
 };
 use anyhow::bail;
@@ -8,7 +8,7 @@ use once_cell::sync::Lazy;
 
 // grid version: u8 = the grid algorithm version used by the track
 
-pub static GRIDVER: Lazy<ModHandler> = Lazy::new(|| ModHandler {
+pub(in crate::formats::lrb) static GRIDVER: Lazy<ModHandler> = Lazy::new(|| ModHandler {
     flags: mod_flags::EXTRA_DATA | mod_flags::PHYSICS,
     read: Box::new(|cursor, output| {
         let grid_version_number = cursor.read_u8()?;

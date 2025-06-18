@@ -1,28 +1,26 @@
-pub mod base;
-pub mod common;
-pub mod reader;
-pub mod writer;
+mod base;
+mod common;
+mod reader;
+mod writer;
 
 pub use reader::read;
 pub use writer::write;
 
-use super::InternalTrackFormat;
+use crate::formats::internal::InternalTrackFormat;
 use anyhow::Result;
-use base::{
-    gridver::GRIDVER, label::LABEL, scnline::SCNLINE, simline::SIMLINE, startoffset::STARTOFFSET,
-};
+use base::{GRIDVER, LABEL, SCNLINE, SIMLINE, STARTOFFSET};
 use once_cell::sync::Lazy;
 use std::{collections::HashMap, io::Cursor};
 
-pub mod mod_flags {
-    pub const REQUIRED: u8 = 1 << 0;
-    pub const PHYSICS: u8 = 1 << 1;
-    pub const CAMERA: u8 = 1 << 2;
-    pub const SCENERY: u8 = 1 << 3;
-    pub const EXTRA_DATA: u8 = 1 << 4;
+mod mod_flags {
+    pub(crate) const REQUIRED: u8 = 1 << 0;
+    pub(crate) const PHYSICS: u8 = 1 << 1;
+    pub(crate) const CAMERA: u8 = 1 << 2;
+    pub(crate) const SCENERY: u8 = 1 << 3;
+    pub(crate) const EXTRA_DATA: u8 = 1 << 4;
 }
 
-pub struct ModHandler {
+struct ModHandler {
     flags: u8,
     read: Box<dyn Fn(&mut Cursor<&[u8]>, &mut InternalTrackFormat) -> Result<()> + Send + Sync>,
     write: Box<dyn Fn(&mut Cursor<Vec<u8>>, &InternalTrackFormat) -> Result<()> + Send + Sync>,

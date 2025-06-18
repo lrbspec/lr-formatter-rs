@@ -1,5 +1,5 @@
 use crate::formats::{
-    Line, LineType, SimulationLine,
+    internal::{Line, LineType, SimulationLine},
     lrb::{ModHandler, mod_flags},
 };
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
@@ -23,7 +23,7 @@ mod sim_line_flags {
     pub const RIGHT_EXTENSION: u8 = 1 << 3;
 }
 
-pub static SIMLINE: Lazy<ModHandler> = Lazy::new(|| ModHandler {
+pub(in crate::formats::lrb) static SIMLINE: Lazy<ModHandler> = Lazy::new(|| ModHandler {
     flags: mod_flags::EXTRA_DATA | mod_flags::PHYSICS | mod_flags::SCENERY,
     read: Box::new(|cursor, output| {
         let num_lines = cursor.read_u32::<LittleEndian>()?;

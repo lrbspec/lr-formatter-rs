@@ -5,7 +5,7 @@ use byteorder::{BigEndian, ReadBytesExt};
 
 use crate::{
     formats::{
-        GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine,
+        internal::{GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine},
         sol::amf0::deserialize,
     },
     util::{StringLength, parse_string},

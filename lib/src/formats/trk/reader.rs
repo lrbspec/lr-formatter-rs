@@ -8,7 +8,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::{
     formats::{
-        GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine,
+        internal::{GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine},
         trk::{
             FEATURE_BACKGROUND_COLOR_B, FEATURE_BACKGROUND_COLOR_G, FEATURE_BACKGROUND_COLOR_R,
             FEATURE_GRAVITY_WELL_SIZE, FEATURE_LINE_COLOR_B, FEATURE_LINE_COLOR_G,
