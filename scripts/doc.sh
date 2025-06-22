@@ -1,3 +1,3 @@
 #!/bin/bash
 
-cargo doc --open
+cargo doc --no-deps
