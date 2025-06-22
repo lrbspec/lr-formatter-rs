@@ -3,7 +3,7 @@ use std::{
     io::{Cursor, Read, Seek, SeekFrom},
 };
 
-use anyhow::{Result, anyhow, bail};
+use anyhow::{Result, bail};
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::{
@@ -33,14 +33,14 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
     cursor.read_exact(&mut magic_number)?;
 
     if &magic_number != &[b'T', b'R', b'K', 0xF2] {
-        return Err(anyhow!("Read invalid magic number!"));
+        bail!("Read invalid magic number!");
     }
 
     // Version
     let version = cursor.read_u8()?;
 
     if version > 1 {
-        return Err(anyhow!("Invalid trk version!"));
+        bail!("Invalid trk version!");
     }
 
     let feature_string = parse_string::<LittleEndian>(&mut cursor, StringLength::U16)?;
@@ -199,7 +199,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
     cursor.read_exact(&mut meta_magic_number)?;
 
     if &meta_magic_number != b"META" {
-        return Err(anyhow!("Read invalid meta magic number!"));
+        bail!("Read invalid meta magic number!");
     }
 
     let num_entries = cursor.read_u16::<LittleEndian>()?;

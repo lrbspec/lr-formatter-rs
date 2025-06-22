@@ -5,7 +5,7 @@ use crate::formats::{
     },
     trackjson::LRAJsonArrayLine,
 };
-use anyhow::{Result, anyhow};
+use anyhow::{Result, anyhow, bail};
 
 pub fn read(json_str: &str) -> Result<InternalTrackFormat> {
     let mut parsed_track = InternalTrackFormat::filled_default();
@@ -15,7 +15,7 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat> {
         "6.0" => GridVersion::V6_0,
         "6.1" => GridVersion::V6_1,
         "6.2" => GridVersion::V6_2,
-        other => return Err(anyhow!("Invalid grid version {} when parsing json!", other)),
+        other => bail!("Invalid grid version {} when parsing json!", other),
     };
 
     if let Some(line_list) = track.lines {
@@ -24,7 +24,7 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat> {
                 0 => LineType::BLUE,
                 1 => LineType::RED,
                 2 => LineType::GREEN,
-                other => return Err(anyhow!("Json line had invalid line type {}!", other)),
+                other => bail!("Json line had invalid line type {}!", other),
             };
 
             let base_line = Line {
@@ -47,9 +47,7 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat> {
                 } else if let (Some(left_ext), Some(right_ext)) = (line.left_ext, line.right_ext) {
                     (left_ext, right_ext)
                 } else {
-                    return Err(anyhow!(
-                        "Json simline did not have valid extension attribute!"
-                    ));
+                    bail!("Json simline did not have valid extension attribute!");
                 };
 
                 parsed_track.simulation_lines.push(SimulationLine {

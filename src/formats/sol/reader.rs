@@ -1,6 +1,6 @@
 use std::io::{Cursor, Read};
 
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::{Context, Result, bail};
 use byteorder::{BigEndian, ReadBytesExt};
 
 use crate::{
@@ -20,7 +20,7 @@ pub fn read(data: &[u8], track_index: Option<u32>) -> Result<InternalTrackFormat
     cursor.read_exact(&mut magic_number)?;
 
     if &magic_number != &[0x00, 0xBF] {
-        return Err(anyhow!("Read invalid magic number!"));
+        bail!("Read invalid magic number!");
     }
 
     // Header
@@ -30,25 +30,25 @@ pub fn read(data: &[u8], track_index: Option<u32>) -> Result<InternalTrackFormat
     cursor.read_exact(&mut tag)?;
 
     if &tag != &[b'T', b'C', b'S', b'O'] {
-        return Err(anyhow!("Read invalid tag {:?}!", tag));
+        bail!("Read invalid tag {:?}!", tag);
     }
 
     let mut marker = [0u8; 6];
     cursor.read_exact(&mut marker)?;
     if &marker != &[0x00, 0x04, 0x00, 0x00, 0x00, 0x00] {
-        return Err(anyhow!("Read invalid marker {:?}!", marker));
+        bail!("Read invalid marker {:?}!", marker);
     }
 
     let sol_name = parse_string::<BigEndian>(&mut cursor, StringLength::U16)?;
     if sol_name.as_str() != "savedLines" {
-        return Err(anyhow!("Read invalid SOL name {}!", sol_name));
+        bail!("Read invalid SOL name {}!", sol_name);
     }
 
     let _padding = cursor.read_u32::<BigEndian>()?;
 
     let data_name = parse_string::<BigEndian>(&mut cursor, StringLength::U16)?;
     if data_name.as_str() != "trackList" {
-        return Err(anyhow!("Read invalid data name {}!", data_name));
+        bail!("Read invalid data name {}!", data_name);
     }
 
     // Track Data

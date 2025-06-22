@@ -3,7 +3,7 @@ use crate::{
     formats::internal::InternalTrackFormat,
     util::{StringLength, parse_string},
 };
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::{Context, Result, bail};
 use byteorder::{LittleEndian, ReadBytesExt};
 use std::io::{Cursor, Read, Seek, SeekFrom};
 
@@ -16,7 +16,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
     cursor.read_exact(&mut magic_number)?;
 
     if &magic_number != b"LRB" {
-        return Err(anyhow!("Read invalid magic number!"));
+        bail!("Read invalid magic number!");
     }
 
     // Version
@@ -55,7 +55,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
             println!("[WARNING] This mod is not supported: {} v{}", name, version);
 
             if flags & mod_flags::REQUIRED != 0 {
-                return Err(anyhow!("Required mod found!"));
+                bail!("Required mod found!");
             }
 
             if flags & mod_flags::SCENERY != 0 {
