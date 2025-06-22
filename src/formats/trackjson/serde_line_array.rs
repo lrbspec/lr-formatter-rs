@@ -2,15 +2,19 @@ use core::fmt;
 
 use super::LRAJsonArrayLine;
 use serde::{
-    de::{Error as DeError, SeqAccess, Visitor}, Deserialize, Deserializer, Serialize, ser::Error
+    Deserialize, Deserializer, Serialize,
+    de::{Error as DeError, SeqAccess, Visitor},
+    ser::Error,
 };
 
 impl Serialize for LRAJsonArrayLine {
     fn serialize<S>(&self, _serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: serde::Serializer
+        S: serde::Serializer,
     {
-      Err(S::Error::custom("LRAJsonArrayLine not intended to be serialized"))
+        Err(S::Error::custom(
+            "LRAJsonArrayLine not intended to be serialized",
+        ))
     }
 }
 
