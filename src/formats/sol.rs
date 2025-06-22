@@ -1,3 +1,5 @@
+//! Format used by original flash editions of Line Rider, which includes multiple tracks within the same file
+
 mod amf0;
 mod reader;
 mod writer;
@@ -8,6 +10,7 @@ pub use writer::write;
 use byteorder::{BigEndian, ReadBytesExt};
 use std::io::{Cursor, Seek};
 
+/// Retrieve the number of tracks an sol file contains
 pub fn get_track_count(data: &[u8]) -> u32 {
     let mut cursor = Cursor::new(data);
 

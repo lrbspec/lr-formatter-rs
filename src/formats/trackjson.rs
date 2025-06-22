@@ -1,3 +1,5 @@
+//! Format used by the updated web version of Line Rider, [linerider.com](https://www.linerider.com/)
+
 mod reader;
 mod serde_boolean;
 mod serde_line_array;

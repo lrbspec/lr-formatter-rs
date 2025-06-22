@@ -1,3 +1,5 @@
+//! Format proposed to unify feature sets across versions, see [LRBSpec](https://github.com/lrbspec)
+
 mod base;
 mod common;
 mod reader;

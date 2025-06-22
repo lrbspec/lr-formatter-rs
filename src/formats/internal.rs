@@ -1,3 +1,6 @@
+//! Format that lr_formatter_rs parses into and out of, exposed for usage after reading and before writing
+
+/// Physics grid implementation used, with 6.2 being the default
 #[derive(Debug, Clone, Default)]
 pub enum GridVersion {
     #[default]
@@ -19,6 +22,7 @@ pub struct Vec2 {
     pub y: f64,
 }
 
+/// Base line that all line types derive from
 #[derive(Debug, Clone)]
 pub struct Line {
     pub id: u32,
@@ -44,6 +48,7 @@ pub struct SceneryLine {
     pub width: Option<f64>,
 }
 
+/// Struct for storing track properties in an easily accessible way
 #[derive(Debug, Clone, Default)]
 pub struct InternalTrackFormat {
     pub grid_version: GridVersion,
@@ -58,7 +63,8 @@ pub struct InternalTrackFormat {
 }
 
 impl InternalTrackFormat {
-    pub fn filled_default() -> Self {
+    /// Creates a new `InternalTrackFormat` with recommended defaults
+    pub fn new() -> Self {
         Self {
             duration: 1200,
             ..Default::default()

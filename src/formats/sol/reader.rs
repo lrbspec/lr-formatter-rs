@@ -12,7 +12,7 @@ use crate::{
 };
 
 pub fn read(data: &[u8], track_index: Option<u32>) -> Result<InternalTrackFormat> {
-    let mut parsed_track = InternalTrackFormat::filled_default();
+    let mut parsed_track = InternalTrackFormat::new();
     let mut cursor = Cursor::new(data);
 
     // Magic number

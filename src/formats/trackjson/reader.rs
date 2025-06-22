@@ -8,7 +8,7 @@ use crate::formats::{
 use anyhow::{Result, anyhow, bail};
 
 pub fn read(json_str: &str) -> Result<InternalTrackFormat> {
-    let mut parsed_track = InternalTrackFormat::filled_default();
+    let mut parsed_track = InternalTrackFormat::new();
     let track: JsonTrack = serde_json::from_str(json_str)?;
 
     parsed_track.grid_version = match track.version.as_str() {

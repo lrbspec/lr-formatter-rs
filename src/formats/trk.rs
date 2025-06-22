@@ -1,3 +1,5 @@
+//! Format used by [Line Rider: Advanced](https://github.com/jealouscloud/linerider-advanced) and its forks
+
 mod reader;
 
 pub use reader::read;
