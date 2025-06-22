@@ -57,8 +57,10 @@
       "x2": f64,
       "y2": f64,
       "flipped": boolean | 0 | 1,
-      "leftExtended": boolean | 0 | 1,
-      "rightExtended": boolean | 0 | 1,
+      // Either leftExtended and rightExtended are present, or extended is present
+      "leftExtended"?: boolean | 0 | 1,
+      "rightExtended"?: boolean | 0 | 1,
+      "extended"?: 0 | 1 | 2 | 3,
       "layer"?: u32,
     },
     {
@@ -69,8 +71,10 @@
       "x2": f64,
       "y2": f64,
       "flipped": boolean | 0 | 1,
-      "leftExtended": boolean | 0 | 1,
-      "rightExtended": boolean | 0 | 1,
+      // Either leftExtended and rightExtended are present, or extended is present
+      "leftExtended"?: boolean | 0 | 1,
+      "rightExtended"?: boolean | 0 | 1,
+      "extended"?: 0 | 1 | 2 | 3,
       "multiplier"?: f64,
       "layer"?: u32,
     },
