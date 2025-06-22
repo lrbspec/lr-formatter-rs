@@ -1,4 +1,5 @@
 mod reader;
+mod serde_boolean;
 mod serde_line_array;
 mod writer;
 
@@ -6,6 +7,7 @@ pub use reader::read;
 pub use writer::write;
 
 use serde::{Deserialize, Serialize};
+use serde_boolean::option_bool_from_any;
 
 // LRA line array types:
 // [type: 0, id: int, x1: double, y1: double, x2: double, y2: double, extended: u8, flipped: bool]
@@ -79,11 +81,26 @@ struct JsonLine {
     y1: f64,
     x2: f64,
     y2: f64,
-    #[serde(skip_serializing_if = "Option::is_none")]
+
+    #[serde(
+        default,
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "option_bool_from_any"
+    )]
     flipped: Option<bool>,
-    #[serde(rename = "leftExtended", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default,
+        rename = "leftExtended",
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "option_bool_from_any"
+    )]
     left_ext: Option<bool>,
-    #[serde(rename = "rightExtended", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default,
+        rename = "rightExtended",
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "option_bool_from_any"
+    )]
     right_ext: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     multiplier: Option<f64>,

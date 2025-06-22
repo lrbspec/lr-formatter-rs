@@ -16,9 +16,9 @@
       "y1": -22.67180989806505,
       "x2": -3.044387075235825,
       "y2": -24.39374856884511,
-      "flipped": false,
-      "leftExtended": false,
-      "rightExtended": true
+      "flipped": 0,
+      "leftExtended": 0,
+      "rightExtended": 1
     },
     {
       "id": 1,
