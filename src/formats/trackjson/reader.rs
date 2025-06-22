@@ -39,21 +39,27 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat> {
             if line.line_type == 2 {
                 parsed_track.scenery_lines.push(SceneryLine {
                     base_line,
-                    width: None,
+                    width: line.width,
                 });
             } else {
+                let (left_extension, right_extension) = if let Some(ext) = line.extended {
+                    (ext & 1 != 0, ext & 2 != 0)
+                } else if let (Some(left_ext), Some(right_ext)) = (line.left_ext, line.right_ext) {
+                    (left_ext, right_ext)
+                } else {
+                    return Err(anyhow!(
+                        "Json simline did not have valid extension attribute!"
+                    ));
+                };
+
                 parsed_track.simulation_lines.push(SimulationLine {
                     base_line,
                     flipped: line
                         .flipped
                         .ok_or_else(|| anyhow!("Json simline did not have flipped attribute!"))?,
-                    left_extension: line.left_ext.ok_or_else(|| {
-                        anyhow!("Json simline did not have left_extension attribute!")
-                    })?,
-                    right_extension: line.right_ext.ok_or_else(|| {
-                        anyhow!("Json simline did not have right_extension attribute!")
-                    })?,
-                    multiplier: None,
+                    left_extension,
+                    right_extension,
+                    multiplier: line.multiplier,
                 });
             }
         }

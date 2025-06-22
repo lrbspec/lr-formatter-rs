@@ -28,6 +28,7 @@ pub fn write(internal: &InternalTrackFormat) -> Result<String> {
             flipped: Some(line.flipped),
             left_ext: Some(line.left_extension),
             right_ext: Some(line.right_extension),
+            extended: None,
             multiplier: line.multiplier,
             width: None,
         });
@@ -44,6 +45,7 @@ pub fn write(internal: &InternalTrackFormat) -> Result<String> {
             flipped: None,
             left_ext: None,
             right_ext: None,
+            extended: None,
             multiplier: None,
             width: line.width,
         });

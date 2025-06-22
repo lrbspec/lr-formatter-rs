@@ -103,6 +103,8 @@ struct JsonLine {
     )]
     right_ext: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    extended: Option<u8>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     multiplier: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     width: Option<f64>,
