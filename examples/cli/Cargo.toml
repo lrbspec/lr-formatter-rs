@@ -10,7 +10,7 @@ repository = "https://github.com/lrbspec/lr-formatter-rs"
 [dependencies]
 clap = { version = "4.0", features = ["derive"] }
 anyhow = "1.0.97"
-lr_formatter_rs = { path = "../../lib" }
+lr_formatter_rs = { path = "../../" }
 dialoguer = "0.11"
 
 [[bin]]
