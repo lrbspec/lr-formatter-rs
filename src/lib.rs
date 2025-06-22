@@ -1,9 +1,11 @@
+//! This library allows parsing of various Line Rider track file formats
 mod formats;
 pub use formats::{Format, internal, lrb, sol, trackjson, trk};
 pub(crate) mod util;
 
 use anyhow::Result;
 
+/// Function to convert from format `from` to format `to`, mainly helpful for conversion utility programs
 pub fn convert(input: &[u8], from: Format, to: Format) -> Result<Vec<u8>> {
     let internal_format = match from {
         Format::TrackJson => {
