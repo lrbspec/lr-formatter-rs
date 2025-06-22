@@ -11,7 +11,7 @@ pub(crate) enum StringLength {
     Fixed(usize),
 }
 
-// Generalized function for reading strings
+/// Generalized function for reading binary length-prefixed strings
 pub(crate) fn parse_string<B: ByteOrder>(
     cursor: &mut Cursor<&[u8]>,
     length_type: StringLength,
