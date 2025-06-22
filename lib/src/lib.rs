@@ -1,8 +1,8 @@
-pub mod formats;
+mod formats;
+pub use formats::{Format, internal, lrb, sol, trackjson, trk};
 pub(crate) mod util;
 
 use anyhow::Result;
-use formats::{Format, lrb, sol, trackjson, trk};
 
 pub fn convert(input: &[u8], from: Format, to: Format) -> Result<Vec<u8>> {
     let internal_format = match from {

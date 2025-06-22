@@ -1,7 +1,4 @@
-use lr_formatter_rs::{
-    convert,
-    formats::{sol::get_track_count, Format},
-};
+use lr_formatter_rs::{convert, sol::get_track_count, Format};
 
 #[tauri::command]
 fn convert_files(

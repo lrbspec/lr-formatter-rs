@@ -1,8 +1,8 @@
 use anyhow::{Context, Result};
 use clap::Parser;
 use dialoguer::Input;
-use lr_formatter_rs::formats::sol;
-use lr_formatter_rs::{convert, formats::Format};
+use lr_formatter_rs::sol;
+use lr_formatter_rs::{Format, convert};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
