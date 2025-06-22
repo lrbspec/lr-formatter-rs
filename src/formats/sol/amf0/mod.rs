@@ -1,36 +1,5 @@
-//! This crate provides functionality for serializing and deserializing data
-//! based on the Adobe AMF0 encoding specification located at
-//! <https://wwwimages2.adobe.com/content/dam/acom/en/devnet/pdf/amf0-file-format-specification.pdf>
-//!
 //! <https://github.com/KallDrexx/rust-media-libs>
 //! License: See ./LICENSE-APACHE and ./LICENSE-MIT
-//!
-//! # Examples
-//! ```
-//! use std::io::Cursor;
-//! use std::collections::HashMap;
-//! use rml_amf0::{Amf0Value, serialize, deserialize};
-//!
-//! // Put some data into the Amf0Value types
-//! let mut properties = HashMap::new();
-//! properties.insert("app".to_string(), Amf0Value::Number(99.0));
-//! properties.insert("second".to_string(), Amf0Value::Utf8String("test".to_string()));
-//!
-//! let value1 = Amf0Value::Number(32.0);
-//! let value2 = Amf0Value::Boolean(true);
-//! let object = Amf0Value::Object(properties);
-//!        
-//! let input = vec![value1, object, value2];        
-//!
-//! // Serialize the values into a vector of bytes
-//! let serialized_data = serialize(&input).unwrap();
-//!
-//! // Deserialize the vector of bytes back into Amf0Value types
-//! let mut serialized_cursor = Cursor::new(serialized_data);
-//! let results = deserialize(&mut serialized_cursor).unwrap();
-//!
-//! assert_eq!(input, results);
-//! ```
 
 mod deserialization;
 mod errors;
@@ -41,7 +10,7 @@ pub(super) use serialization::serialize;
 
 use std::collections::HashMap;
 
-/// An Enum representing the different supported types of Amf0 values
+// An Enum representing the different supported types of Amf0 values
 #[derive(PartialEq, Debug, Clone)]
 pub(super) enum Amf0Value {
     Number(f64),

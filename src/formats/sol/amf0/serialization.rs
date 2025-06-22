@@ -1,7 +1,3 @@
-//! Module contains functionality for serializing values into an
-//! bytes based on the AMF0 specification
-//! (<http://wwwimages.adobe.com/content/dam/Adobe/en/devnet/amf/pdf/amf0-file-format-specification.pdf>)
-//!
 //! <https://github.com/KallDrexx/rust-media-libs>
 //! License: See ./LICENSE-APACHE and ./LICENSE-MIT
 
@@ -9,7 +5,7 @@ use super::{Amf0Value, errors::Amf0SerializationError, markers};
 use byteorder::{BigEndian, WriteBytesExt};
 use std::collections::HashMap;
 
-/// Serializes values into an amf0 encoded vector of bytes
+// Serializes values into an amf0 encoded vector of bytes
 pub(in crate::formats::sol) fn serialize(
     values: &Vec<Amf0Value>,
 ) -> Result<Vec<u8>, Amf0SerializationError> {
