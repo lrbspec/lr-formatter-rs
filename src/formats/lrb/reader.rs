@@ -28,8 +28,6 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
     // Number of mods
     let mod_count = cursor.read_u16::<LittleEndian>()?;
 
-    // TODO Replace println statements with warning wrapper
-
     // Mod table
     for _ in 0..mod_count {
         // Name
@@ -37,8 +35,6 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
 
         // Version
         let version = cursor.read_u16::<LittleEndian>()?;
-
-        println!("[INFO] Loading mod {name} v{version}");
 
         // Flags
         let flags = cursor.read_u8()?;
@@ -52,27 +48,24 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
             _length = cursor.read_u64::<LittleEndian>()?;
         }
 
-        let supported = SUPPORTED_MODS
-            .keys()
-            .any(|supported_mod| supported_mod.0 == name && supported_mod.1 == version);
-
-        if !supported {
-            println!("[WARNING] This mod is not supported: {} v{}", name, version);
-
+        if !SUPPORTED_MODS.contains_key(&(name.as_str(), version)) {
             if flags & mod_flags::REQUIRED != 0 {
                 return Err(TrackReadError::Other {
                     message: format!("Required mod not supported: {} v{}", name, version),
                 });
             }
 
+            // TODO: Include these flags in the internal format
+            // println!("[WARNING] This mod is not supported: {} v{}", name, version);
+
             if flags & mod_flags::SCENERY != 0 {
-                println!("Ignoring it may affect scenery rendering.");
+                // println!("Ignoring it may affect scenery rendering.");
             }
             if flags & mod_flags::CAMERA != 0 {
-                println!("Ignoring it may affect camera functionality.");
+                // println!("Ignoring it may affect camera functionality.");
             }
             if flags & mod_flags::PHYSICS != 0 {
-                println!("Ignoring it may affect track physics.");
+                // println!("Ignoring it may affect track physics.");
             }
         }
 

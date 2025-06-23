@@ -79,7 +79,6 @@ fn serialize_object(
     bytes: &mut Vec<u8>,
 ) -> Result<(), Amf0SerializationError> {
     for (name, value) in properties {
-        // TODO: Add check that property name isn't greater than a u16
         bytes.write_u16::<BigEndian>(name.len() as u16)?;
         bytes.extend(name.as_bytes());
         serialize_value(&value, bytes)?;
