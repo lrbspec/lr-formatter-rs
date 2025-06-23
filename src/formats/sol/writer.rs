@@ -1,16 +1,18 @@
-use anyhow::{Context, Result};
 use byteorder::{BigEndian, WriteBytesExt};
 use std::{
     collections::HashMap,
     io::{Cursor, Seek, Write},
 };
 
-use crate::formats::{
-    internal::{GridVersion, InternalTrackFormat, LineType},
-    sol::amf0::{Amf0Value, serialize},
+use crate::{
+    TrackWriteError,
+    formats::{
+        internal::{GridVersion, InternalTrackFormat, LineType},
+        sol::amf0::{Amf0Value, serialize},
+    },
 };
 
-pub fn write(internal: &InternalTrackFormat) -> Result<Vec<u8>> {
+pub fn write(internal: &InternalTrackFormat) -> Result<Vec<u8>, TrackWriteError> {
     let mut cursor = Cursor::new(Vec::new());
 
     cursor.write_all(b"\x00\xBF")?;
@@ -133,7 +135,7 @@ pub fn write(internal: &InternalTrackFormat) -> Result<Vec<u8>> {
 
     // Serialize and write the data
     let data = vec![Amf0Value::ECMAArray(track_list)];
-    let buffer = serialize(&data).context("Failed to serialize into AMF0 format!")?;
+    let buffer = serialize(&data)?;
     cursor.write_all(&buffer)?;
     cursor.write_u8(0x00)?;
 

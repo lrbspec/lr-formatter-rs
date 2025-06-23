@@ -1,21 +1,30 @@
 use super::JsonTrack;
-use crate::formats::{
-    internal::{
-        GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine, Vec2,
+use crate::{
+    TrackReadError,
+    formats::{
+        internal::{
+            GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine, Vec2,
+        },
+        trackjson::LRAJsonArrayLine,
     },
-    trackjson::LRAJsonArrayLine,
 };
-use anyhow::{Result, anyhow, bail};
 
-pub fn read(json_str: &str) -> Result<InternalTrackFormat> {
+pub fn read(json_str: &str) -> Result<InternalTrackFormat, TrackReadError> {
     let mut parsed_track = InternalTrackFormat::new();
-    let track: JsonTrack = serde_json::from_str(json_str)?;
+    let track: JsonTrack = serde_json::from_str(json_str).map_err(|err| TrackReadError::Other {
+        message: format!("Failed to deserialize json track: {}", err),
+    })?;
 
     parsed_track.grid_version = match track.version.as_str() {
         "6.0" => GridVersion::V6_0,
         "6.1" => GridVersion::V6_1,
         "6.2" => GridVersion::V6_2,
-        other => bail!("Invalid grid version {} when parsing json!", other),
+        other => {
+            return Err(TrackReadError::InvalidData {
+                name: "grid version".to_string(),
+                value: other.to_string(),
+            });
+        }
     };
 
     if let Some(line_list) = track.lines {
@@ -24,7 +33,12 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat> {
                 0 => LineType::BLUE,
                 1 => LineType::RED,
                 2 => LineType::GREEN,
-                other => bail!("Json line had invalid line type {}!", other),
+                other => {
+                    return Err(TrackReadError::InvalidData {
+                        name: "line type".to_string(),
+                        value: other.to_string(),
+                    });
+                }
             };
 
             let base_line = Line {
@@ -47,14 +61,18 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat> {
                 } else if let (Some(left_ext), Some(right_ext)) = (line.left_ext, line.right_ext) {
                     (left_ext, right_ext)
                 } else {
-                    bail!("Json simline did not have valid extension attribute!");
+                    return Err(TrackReadError::InvalidData {
+                        name: "line extension".to_string(),
+                        value: "None".to_string(),
+                    });
                 };
 
                 parsed_track.simulation_lines.push(SimulationLine {
                     base_line,
-                    flipped: line
-                        .flipped
-                        .ok_or_else(|| anyhow!("Json simline did not have flipped attribute!"))?,
+                    flipped: line.flipped.ok_or_else(|| TrackReadError::InvalidData {
+                        name: "line flipped".to_string(),
+                        value: format!("{:?}", line.flipped),
+                    })?,
                     left_extension,
                     right_extension,
                     multiplier: line.multiplier,

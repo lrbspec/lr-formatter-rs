@@ -6,7 +6,7 @@ use thiserror::Error;
 
 // Errors that can occur during the deserialization process
 #[derive(Debug, Error)]
-pub(in crate::formats::sol) enum Amf0DeserializationError {
+pub enum Amf0DeserializationError {
     // Every Amf0 value starts with a marker byte describing the type of value that was
     // encoded.  For example a marker of `0x00` is a number, `0x01` is a string, etc..
     //
@@ -36,7 +36,7 @@ pub(in crate::formats::sol) enum Amf0DeserializationError {
 
 // Errors raised during to the serialization process
 #[derive(Debug, Error)]
-pub(in crate::formats::sol) enum Amf0SerializationError {
+pub enum Amf0SerializationError {
     // Amf0 strings cannot be more than 65,535 characters, so if a string was provided
     // with a larger length than this than this error is raised.
     #[error("String length greater than 65,535")]
