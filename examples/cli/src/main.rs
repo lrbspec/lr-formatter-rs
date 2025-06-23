@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use clap::Parser;
-use lr_formatter_rs::{convert, formats::Format};
+use dialoguer::Input;
+use lr_formatter_rs::{lrb, sol, trackjson, trk};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
@@ -20,12 +21,45 @@ struct Cli {
     output_file: Option<String>,
 }
 
-fn parse_format(format: &str) -> Result<Format> {
+enum Format {
+    TrackJson,
+    LRB,
+    TRK,
+    SOL(Option<u32>),
+}
+
+fn convert(input: &[u8], from: Format, to: Format) -> Result<Vec<u8>> {
+    let internal_format = match from {
+        Format::TrackJson => {
+            let input_str = String::from_utf8(input.to_vec())?;
+            trackjson::read(&input_str)?
+        }
+        Format::LRB => lrb::read(input)?,
+        Format::TRK => trk::read(input)?,
+        Format::SOL(track_index) => sol::read(input, track_index)?,
+    };
+
+    let output_bytes = match to {
+        Format::TrackJson => {
+            let json_str = trackjson::write(&internal_format)?;
+            Ok(json_str.into_bytes())
+        }
+        Format::LRB => lrb::write(&internal_format),
+        Format::SOL(_) => sol::write(&internal_format),
+        _ => Err(anyhow::anyhow!(
+            "Unsupported to format. Must be one of: trackjson, lrb, sol",
+        )),
+    };
+
+    output_bytes
+}
+
+fn parse_format(format: &str, sol_index: Option<u32>) -> Result<Format> {
     match format.to_lowercase().as_str() {
         "json" => Ok(Format::TrackJson),
         "lrb" => Ok(Format::LRB),
         "trk" => Ok(Format::TRK),
-        "sol" => Ok(Format::SOL(Some(0))),
+        "sol" => Ok(Format::SOL(sol_index)),
         _ => Err(anyhow::anyhow!(
             "Invalid format '{}'. Must be one of: json, lrb, trk, sol",
             format
@@ -36,6 +70,13 @@ fn parse_format(format: &str) -> Result<Format> {
 fn run() -> Result<()> {
     let args = Cli::parse();
 
+    let mut input_data = Vec::new();
+
+    File::open(&args.input_file)
+        .with_context(|| format!("Failed to open input file '{}'", &args.input_file))?
+        .read_to_end(&mut input_data)
+        .context("Failed to read input file")?;
+
     let input_path = Path::new(&args.input_file);
     let input_extension = input_path
         .extension()
@@ -45,22 +86,47 @@ fn run() -> Result<()> {
         .file_stem()
         .and_then(|e| e.to_str())
         .context("Failed to parse file name")?;
-    let input_format = parse_format(input_extension).context("Failed to parse input format")?;
-    let mut input_data = Vec::new();
 
-    File::open(&args.input_file)
-        .with_context(|| format!("Failed to open input file '{}'", &args.input_file))?
-        .read_to_end(&mut input_data)
-        .context("Failed to read input file")?;
+    let mut sol_index = None;
 
-    let output_format = parse_format(&args.output_format).context("Failed to parse output format")?;
+    if input_extension == "sol" {
+        let max_index = sol::get_track_count(&input_data) - 1;
+        if max_index > 0 {
+            sol_index = Some(
+                Input::new()
+                    .with_prompt(format!(
+                        "SOL detected, please enter track file index (0 - {})",
+                        max_index
+                    ))
+                    .validate_with(|input: &u32| {
+                        if (0..=max_index).contains(input) {
+                            Ok(())
+                        } else {
+                            Err(format!(
+                                "Track file index must be in range (0 - {})",
+                                max_index
+                            ))
+                        }
+                    })
+                    .interact_text()
+                    .unwrap_or(0),
+            );
+        }
+    }
+
+    let input_format =
+        parse_format(input_extension, sol_index).context("Failed to parse input format")?;
+    let output_format =
+        parse_format(&args.output_format, None).context("Failed to parse output format")?;
     let output_extension = match output_format {
         Format::LRB => ".lrb",
         Format::SOL(_) => ".sol",
         Format::TRK => ".trk",
         Format::TrackJson => ".track.json",
     };
-    let output_file_name = &args.output_file.unwrap_or(input_name.to_string() + " (Converted)" + output_extension);
+    let output_file_name = &args
+        .output_file
+        .unwrap_or(input_name.to_string() + " (Converted)" + output_extension);
     let output_data =
         &convert(&input_data, input_format, output_format).context("Conversion failed")?;
 
