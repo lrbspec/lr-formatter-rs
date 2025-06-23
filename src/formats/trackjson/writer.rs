@@ -1,8 +1,10 @@
 use super::{JsonLayer, JsonLine, JsonRider, JsonTrack, Vec2};
-use crate::formats::internal::{GridVersion, InternalTrackFormat, LineType};
-use anyhow::Result;
+use crate::{
+    TrackWriteError,
+    formats::internal::{GridVersion, InternalTrackFormat, LineType},
+};
 
-pub fn write(internal: &InternalTrackFormat) -> Result<String> {
+pub fn write(internal: &InternalTrackFormat) -> Result<String, TrackWriteError> {
     let version = match internal.grid_version {
         GridVersion::V6_0 => String::from("6.0"),
         GridVersion::V6_1 => String::from("6.1"),
@@ -84,5 +86,9 @@ pub fn write(internal: &InternalTrackFormat) -> Result<String> {
         y_gravity: None,
     };
 
-    Ok(serde_json::to_string(&track)?)
+    let track_string = serde_json::to_string(&track).map_err(|err| TrackWriteError::Other {
+        message: format!("Failed to serialize json track: {}", err),
+    })?;
+
+    Ok(track_string)
 }

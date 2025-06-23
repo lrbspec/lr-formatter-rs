@@ -1,13 +1,12 @@
 use super::{SUPPORTED_MODS, mod_flags};
-use crate::formats::internal::InternalTrackFormat;
-use anyhow::{Context, Result};
+use crate::{TrackWriteError, formats::internal::InternalTrackFormat};
 use byteorder::{LittleEndian, WriteBytesExt};
 use std::{
     collections::HashMap,
     io::{Cursor, Seek, SeekFrom, Write},
 };
 
-pub fn write(internal: &InternalTrackFormat) -> Result<Vec<u8>> {
+pub fn write(internal: &InternalTrackFormat) -> Result<Vec<u8>, TrackWriteError> {
     let mut cursor = Cursor::new(Vec::new());
     let mut mod_table_entry_offsets: HashMap<String, u64> = HashMap::new();
 
@@ -49,7 +48,7 @@ pub fn write(internal: &InternalTrackFormat) -> Result<Vec<u8>> {
         let section_start = cursor.stream_position()?;
         let name = mod_identifer.0;
         let writer = &SUPPORTED_MODS[mod_identifer].write;
-        (writer)(&mut cursor, &internal).context("Failed to write mod!")?;
+        (writer)(&mut cursor, &internal)?;
 
         let section_end = cursor.stream_position()?;
         let section_length = section_end - section_start;

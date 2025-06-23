@@ -4,6 +4,7 @@ mod amf0;
 mod reader;
 mod writer;
 
+pub use amf0::{Amf0DeserializationError, Amf0SerializationError};
 pub use reader::read;
 pub use writer::write;
 

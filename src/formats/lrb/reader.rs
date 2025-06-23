@@ -1,13 +1,13 @@
 use super::{SUPPORTED_MODS, mod_flags};
 use crate::{
+    TrackReadError,
     formats::internal::InternalTrackFormat,
-    util::{StringLength, parse_string},
+    util::{self, StringLength, parse_string},
 };
-use anyhow::{Context, Result, bail};
 use byteorder::{LittleEndian, ReadBytesExt};
 use std::io::{Cursor, Read, Seek, SeekFrom};
 
-pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
+pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
     let mut parsed_track = InternalTrackFormat::new();
     let mut cursor = Cursor::new(data);
 
@@ -16,7 +16,10 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
     cursor.read_exact(&mut magic_number)?;
 
     if &magic_number != b"LRB" {
-        bail!("Read invalid magic number!");
+        return Err(TrackReadError::InvalidData {
+            name: "magic_number".to_string(),
+            value: util::bytes_to_hex_string(&magic_number),
+        });
     }
 
     // Version
@@ -24,6 +27,8 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
 
     // Number of mods
     let mod_count = cursor.read_u16::<LittleEndian>()?;
+
+    // TODO Replace println statements with warning wrapper
 
     // Mod table
     for _ in 0..mod_count {
@@ -55,7 +60,9 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
             println!("[WARNING] This mod is not supported: {} v{}", name, version);
 
             if flags & mod_flags::REQUIRED != 0 {
-                bail!("Required mod found!");
+                return Err(TrackReadError::Other {
+                    message: format!("Required mod not supported: {} v{}", name, version),
+                });
             }
 
             if flags & mod_flags::SCENERY != 0 {
@@ -81,11 +88,13 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
         let mod_identifier = (name.as_str(), version);
         match SUPPORTED_MODS.get(&mod_identifier) {
             Some(mod_handler) => {
-                (mod_handler.read)(&mut cursor, &mut parsed_track)
-                    .context("Failed to read mod!")?;
+                (mod_handler.read)(&mut cursor, &mut parsed_track)?;
             }
             None => {
-                bail!("Came across invalid mod {}!", name)
+                return Err(TrackReadError::InvalidData {
+                    name: "mod_identifier".to_string(),
+                    value: format!("{} v{}", mod_identifier.0, mod_identifier.1),
+                });
             }
         }
 

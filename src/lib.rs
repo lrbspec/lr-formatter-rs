@@ -8,6 +8,9 @@
 //! println!("Title: {}", track.title);
 //! ```
 
+mod errors;
 mod formats;
-pub use formats::{internal, lrb, sol, trackjson, trk};
 pub(crate) mod util;
+
+pub use errors::{TrackReadError, TrackWriteError};
+pub use formats::{internal, lrb, sol, trackjson, trk};

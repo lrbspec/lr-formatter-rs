@@ -8,8 +8,7 @@ mod writer;
 pub use reader::read;
 pub use writer::write;
 
-use crate::formats::internal::InternalTrackFormat;
-use anyhow::Result;
+use crate::{TrackReadError, TrackWriteError, formats::internal::InternalTrackFormat};
 use base::{GRIDVER, LABEL, SCNLINE, SIMLINE, STARTOFFSET};
 use once_cell::sync::Lazy;
 use std::{collections::HashMap, io::Cursor};
@@ -24,8 +23,16 @@ mod mod_flags {
 
 struct ModHandler {
     flags: u8,
-    read: Box<dyn Fn(&mut Cursor<&[u8]>, &mut InternalTrackFormat) -> Result<()> + Send + Sync>,
-    write: Box<dyn Fn(&mut Cursor<Vec<u8>>, &InternalTrackFormat) -> Result<()> + Send + Sync>,
+    read: Box<
+        dyn Fn(&mut Cursor<&[u8]>, &mut InternalTrackFormat) -> Result<(), TrackReadError>
+            + Send
+            + Sync,
+    >,
+    write: Box<
+        dyn Fn(&mut Cursor<Vec<u8>>, &InternalTrackFormat) -> Result<(), TrackWriteError>
+            + Send
+            + Sync,
+    >,
 }
 
 static SUPPORTED_MODS: Lazy<HashMap<(&'static str, u16), &'static Lazy<ModHandler>>> =

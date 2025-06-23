@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use clap::Parser;
 use dialoguer::Input;
 use lr_formatter_rs::{lrb, sol, trackjson, trk};
@@ -46,12 +46,10 @@ fn convert(input: &[u8], from: Format, to: Format) -> Result<Vec<u8>> {
         }
         Format::LRB => lrb::write(&internal_format),
         Format::SOL(_) => sol::write(&internal_format),
-        _ => Err(anyhow::anyhow!(
-            "Unsupported to format. Must be one of: trackjson, lrb, sol",
-        )),
-    };
+        _ => bail!("Unsupported to format. Must be one of: trackjson, lrb, sol"),
+    }?;
 
-    output_bytes
+    Ok(output_bytes)
 }
 
 fn parse_format(format: &str, sol_index: Option<u32>) -> Result<Format> {

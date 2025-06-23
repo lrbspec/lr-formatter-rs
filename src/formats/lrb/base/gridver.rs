@@ -1,8 +1,10 @@
-use crate::formats::{
-    internal::GridVersion,
-    lrb::{ModHandler, mod_flags},
+use crate::{
+    TrackReadError,
+    formats::{
+        internal::GridVersion,
+        lrb::{ModHandler, mod_flags},
+    },
 };
-use anyhow::bail;
 use byteorder::{ReadBytesExt, WriteBytesExt};
 use once_cell::sync::Lazy;
 
@@ -16,7 +18,12 @@ pub(in crate::formats::lrb) static GRIDVER: Lazy<ModHandler> = Lazy::new(|| ModH
             0 => GridVersion::V6_2,
             1 => GridVersion::V6_1,
             2 => GridVersion::V6_0,
-            other => bail!("Invalid grid version number: {}", other),
+            other => {
+                return Err(TrackReadError::InvalidData {
+                    name: "grid version".to_string(),
+                    value: other.to_string(),
+                });
+            }
         };
 
         output.grid_version = grid_version;

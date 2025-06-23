@@ -3,10 +3,10 @@ use std::{
     io::{Cursor, Read, Seek, SeekFrom},
 };
 
-use anyhow::{Result, bail};
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::{
+    TrackReadError,
     formats::{
         internal::{GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine},
         trk::{
@@ -16,7 +16,7 @@ use crate::{
             KNOWN_FEATURES,
         },
     },
-    util::{StringLength, parse_string},
+    util::{StringLength, bytes_to_hex_string, parse_string},
 };
 
 use super::{
@@ -24,7 +24,7 @@ use super::{
     FEATURE_SCENERY_WIDTH, FEATURE_SONG_INFO,
 };
 
-pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
+pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
     let mut parsed_track = InternalTrackFormat::new();
     let mut cursor = Cursor::new(data);
 
@@ -33,14 +33,20 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
     cursor.read_exact(&mut magic_number)?;
 
     if &magic_number != &[b'T', b'R', b'K', 0xF2] {
-        bail!("Read invalid magic number!");
+        return Err(TrackReadError::InvalidData {
+            name: "magic number".to_string(),
+            value: bytes_to_hex_string(&magic_number),
+        });
     }
 
     // Version
     let version = cursor.read_u8()?;
 
     if version > 1 {
-        bail!("Invalid trk version!");
+        return Err(TrackReadError::InvalidData {
+            name: "version".to_string(),
+            value: version.to_string(),
+        });
     }
 
     let feature_string = parse_string::<LittleEndian>(&mut cursor, StringLength::U16)?;
@@ -50,7 +56,10 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
         if KNOWN_FEATURES.contains(feature) {
             included_features.insert(feature);
         } else {
-            bail!("Came across invalid feature {}!", feature);
+            return Err(TrackReadError::InvalidData {
+                name: "feature".to_string(),
+                value: feature.to_string(),
+            });
         }
     }
 
@@ -84,7 +93,10 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
             .collect();
 
         if song_data.len() != 2 {
-            bail!("Invalid song data!");
+            return Err(TrackReadError::InvalidData {
+                name: "song data".to_string(),
+                value: song_data.join(","),
+            });
         }
 
         // TODO: Unused
@@ -109,7 +121,12 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
             1 => LineType::BLUE,
             2 => LineType::RED,
             0 => LineType::GREEN,
-            _ => bail!("Unknown line type!"),
+            other => {
+                return Err(TrackReadError::InvalidData {
+                    name: "line type".to_string(),
+                    value: other.to_string(),
+                });
+            }
         };
 
         let line_inv = (flags >> 7) != 0;
@@ -199,7 +216,10 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
     cursor.read_exact(&mut meta_magic_number)?;
 
     if &meta_magic_number != b"META" {
-        bail!("Read invalid meta magic number!");
+        return Err(TrackReadError::InvalidData {
+            name: "metadata magic number".to_string(),
+            value: bytes_to_hex_string(&meta_magic_number),
+        });
     }
 
     let num_entries = cursor.read_u16::<LittleEndian>()?;
@@ -209,7 +229,10 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
         let key_value_pair: Vec<&str> = meta_string.split("=").filter(|s| !s.is_empty()).collect();
 
         if key_value_pair.len() != 2 {
-            bail!("Invalid key value pair!");
+            return Err(TrackReadError::InvalidData {
+                name: "metadata key value pair".to_string(),
+                value: key_value_pair.join(","),
+            });
         }
 
         let key = key_value_pair[0];
@@ -262,7 +285,10 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
                     let values: Vec<&str> = trigger.split(':').filter(|s| !s.is_empty()).collect();
 
                     if values.len() < 1 {
-                        bail!("Trigger {} was empty", i);
+                        return Err(TrackReadError::InvalidData {
+                            name: "size of trigger data".to_string(),
+                            value: "0".to_string(),
+                        });
                     }
 
                     match values[0] {
@@ -301,11 +327,21 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat> {
                             #[allow(unused_variables)]
                             let end_frame = values[5].parse::<i32>()?;
                         }
-                        _ => bail!("Trigger {} had invalid type: {}", i, values[0]),
+                        other => {
+                            return Err(TrackReadError::InvalidData {
+                                name: format!("triggers {} type", i),
+                                value: other.to_string(),
+                            });
+                        }
                     }
                 }
             }
-            _ => bail!("Unknown meta feature: {}", key),
+            other => {
+                return Err(TrackReadError::InvalidData {
+                    name: "metadata key".to_string(),
+                    value: other.to_string(),
+                });
+            }
         }
     }
 
