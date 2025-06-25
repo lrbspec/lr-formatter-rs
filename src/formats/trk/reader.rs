@@ -15,6 +15,7 @@ use crate::{
             FEATURE_START_ZOOM, FEATURE_TRIGGERS, FEATURE_X_GRAVITY, FEATURE_Y_GRAVITY,
         },
     },
+    internal::{SceneryLine, SimulationLine},
     util::{StringLength, bytes_to_hex_string, parse_string},
 };
 
@@ -93,9 +94,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
         }
 
         // TODO: Unused
-        #[allow(unused_variables)]
         let name = song_data[0];
-        #[allow(unused_variables)]
         let seconds_offset = song_data[1].parse::<f64>()?;
     }
 
@@ -234,43 +233,33 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
         // TODO: Unused
         match key {
             FEATURE_START_ZOOM => {
-                #[allow(unused_variables)]
                 let start_zoom = value.parse::<f32>()?;
             }
             FEATURE_X_GRAVITY => {
-                #[allow(unused_variables)]
                 let x_gravity = value.parse::<f32>()?;
             }
             FEATURE_Y_GRAVITY => {
-                #[allow(unused_variables)]
                 let y_gravity = value.parse::<f32>()?;
             }
             FEATURE_GRAVITY_WELL_SIZE => {
-                #[allow(unused_variables)]
                 let gravity_well_size = value.parse::<f64>()?;
             }
             FEATURE_BACKGROUND_COLOR_R => {
-                #[allow(unused_variables)]
                 let background_color_red = value.parse::<i32>()?;
             }
             FEATURE_BACKGROUND_COLOR_G => {
-                #[allow(unused_variables)]
                 let background_color_green = value.parse::<i32>()?;
             }
             FEATURE_BACKGROUND_COLOR_B => {
-                #[allow(unused_variables)]
                 let background_color_blue = value.parse::<i32>()?;
             }
             FEATURE_LINE_COLOR_R => {
-                #[allow(unused_variables)]
                 let line_color_red = value.parse::<i32>()?;
             }
             FEATURE_LINE_COLOR_G => {
-                #[allow(unused_variables)]
                 let line_color_green = value.parse::<i32>()?;
             }
             FEATURE_LINE_COLOR_B => {
-                #[allow(unused_variables)]
                 let line_color_blue = value.parse::<i32>()?;
             }
             FEATURE_TRIGGERS => {
@@ -287,37 +276,24 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
                     match values[0] {
                         "0" => {
                             // Zoom
-                            #[allow(unused_variables)]
                             let target_zoom = values[1].parse::<f32>()?;
-                            #[allow(unused_variables)]
                             let start_frame = values[2].parse::<i32>()?;
-                            #[allow(unused_variables)]
                             let end_frame = values[3].parse::<i32>()?;
                         }
                         "1" => {
                             // Background Color
-                            #[allow(unused_variables)]
                             let target_bg_red = values[1].parse::<i32>()?;
-                            #[allow(unused_variables)]
                             let target_bg_green = values[2].parse::<i32>()?;
-                            #[allow(unused_variables)]
                             let target_bg_blue = values[3].parse::<i32>()?;
-                            #[allow(unused_variables)]
                             let start_frame = values[4].parse::<i32>()?;
-                            #[allow(unused_variables)]
                             let end_frame = values[5].parse::<i32>()?;
                         }
                         "2" => {
                             // Line Color
-                            #[allow(unused_variables)]
                             let target_line_red = values[1].parse::<i32>()?;
-                            #[allow(unused_variables)]
                             let target_line_green = values[2].parse::<i32>()?;
-                            #[allow(unused_variables)]
                             let target_line_blue = values[3].parse::<i32>()?;
-                            #[allow(unused_variables)]
                             let start_frame = values[4].parse::<i32>()?;
-                            #[allow(unused_variables)]
                             let end_frame = values[5].parse::<i32>()?;
                         }
                         other => {
