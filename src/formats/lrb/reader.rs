@@ -49,14 +49,26 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
             _length = cursor.read_u64::<LittleEndian>()?;
         }
 
-        if !SUPPORTED_MODS.contains_key(&(name.as_str(), version)) {
-            if flags & mod_flags::REQUIRED != 0 {
-                return Err(TrackReadError::Other {
-                    message: format!("Required mod not supported: {} v{}", name, version),
-                });
-            }
+        let mod_identifier = (name.as_str(), version);
 
-            // TODO: Include these flags in the internal format (how?)
+        // Check if we support the mod
+        if let Some(&mod_handler) = SUPPORTED_MODS.get(&mod_identifier) {
+            // Check if there's extra data
+            if flags & mod_flags::EXTRA_DATA == 0 {
+                // Read that data
+                let current_position = cursor.stream_position()?;
+                cursor.seek(SeekFrom::Start(offset))?;
+                (mod_handler.read)(&mut cursor, &mut internal)?;
+                cursor.seek(SeekFrom::Start(current_position))?;
+            }
+        } else if flags & mod_flags::REQUIRED != 0 {
+            // Return an error if we don't support the mod but it's required
+            return Err(TrackReadError::Other {
+                message: format!("Required mod not supported: {} v{}", name, version),
+            });
+        } else {
+            // TODO: Warn about unsupported mod not being included
+
             // println!("[WARNING] This mod is not supported: {} v{}", name, version);
 
             if flags & mod_flags::SCENERY != 0 {
@@ -69,30 +81,6 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
                 // println!("Ignoring it may affect track physics.");
             }
         }
-
-        // We're done if there's no more data
-        if flags & mod_flags::EXTRA_DATA == 0 {
-            continue;
-        }
-
-        // Record the current position and jump to the extra data position
-        let current_position = cursor.stream_position()?;
-        cursor.seek(SeekFrom::Start(offset))?;
-
-        let mod_identifier = (name.as_str(), version);
-        match SUPPORTED_MODS.get(&mod_identifier) {
-            Some(mod_handler) => {
-                (mod_handler.read)(&mut cursor, &mut internal)?;
-            }
-            None => {
-                return Err(TrackReadError::InvalidData {
-                    name: "mod_identifier".to_string(),
-                    value: format!("{} v{}", mod_identifier.0, mod_identifier.1),
-                });
-            }
-        }
-
-        cursor.seek(SeekFrom::Start(current_position))?;
     }
 
     Ok(internal)
