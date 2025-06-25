@@ -1,5 +1,4 @@
 //! Format that lr_formatter_rs parses into and out of, exposed for usage after reading and before writing
-use strum::EnumDiscriminants;
 
 #[derive(Debug, Clone)]
 pub enum GridVersion {
@@ -51,34 +50,6 @@ pub struct SimulationLine {
 pub struct SceneryLine {
     pub base_line: Line,
     pub width: Option<f64>,
-}
-
-#[derive(Debug, Clone, EnumDiscriminants)]
-pub enum LineTypeNew {
-    Simulation {
-        flipped: bool,
-        left_extension: bool,
-        right_extension: bool,
-    },
-    Acceleration {
-        flipped: bool,
-        left_extension: bool,
-        right_extension: bool,
-        multiplier: f64,
-    },
-    Scenery {
-        width: f64,
-    },
-}
-
-#[derive(Debug, Clone)]
-pub struct LineNew {
-    pub id: u32,
-    pub x1: f64,
-    pub y1: f64,
-    pub x2: f64,
-    pub y2: f64,
-    pub line_type: LineTypeNew,
 }
 
 /// Enum for describing track properties that can change by trigger events
@@ -192,7 +163,6 @@ pub struct InternalTrackFormat {
     pub gravity_well_size: f64,
     pub riders: Vec<Rider>,
     pub layers: Vec<Layer>,
-    pub lines: Vec<LineNew>,
     pub audio: Option<Audio>,
 }
 
@@ -230,7 +200,6 @@ impl InternalTrackFormat {
                 editable: true,
                 folder_id: None,
             }],
-            lines: vec![],
             audio: None,
         }
     }

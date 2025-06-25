@@ -3,7 +3,7 @@ use crate::{
     TrackReadError,
     formats::{
         internal::{
-            GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine, Vec2,
+            GridVersion, InternalTrackFormat, LineType, Line, SceneryLine, SimulationLine, Vec2,
         },
         trackjson::LRAJsonArrayLine,
     },

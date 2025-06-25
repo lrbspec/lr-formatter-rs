@@ -40,7 +40,8 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
         let flags = cursor.read_u8()?;
 
         let mut offset = 0u64;
-        let mut _length = 0u64; // TODO: length is unused
+        // TODO: length is unused (is it necessary?)
+        let mut _length = 0u64;
 
         // Data address
         if flags & mod_flags::EXTRA_DATA != 0 {
@@ -55,7 +56,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
                 });
             }
 
-            // TODO: Include these flags in the internal format
+            // TODO: Include these flags in the internal format (how?)
             // println!("[WARNING] This mod is not supported: {} v{}", name, version);
 
             if flags & mod_flags::SCENERY != 0 {

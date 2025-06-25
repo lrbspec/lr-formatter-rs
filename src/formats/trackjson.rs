@@ -25,7 +25,6 @@ enum LRAJsonArrayLine {
     GreenLine(u32, f64, f64, f64, f64),
 }
 
-#[allow(dead_code)]
 #[derive(Serialize, Deserialize, Debug)]
 struct LRAJsonLegacyZoomTrigger {
     #[serde(rename = "ID")]
@@ -37,7 +36,6 @@ struct LRAJsonLegacyZoomTrigger {
 
 // Faulty U32's are used here whenever properties are -999, which
 // represents undefined/unused in the LRA json trigger format
-#[allow(dead_code)]
 #[derive(Serialize, Deserialize, Debug)]
 struct LRAJsonTrigger {
     #[serde(rename = "triggerType")]
