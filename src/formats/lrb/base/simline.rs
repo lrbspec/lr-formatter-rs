@@ -16,12 +16,10 @@ use once_cell::sync::Lazy;
 // ]
 // Line flag defs: A = Red line, B = inverted, C = left extension, D = right extension
 
-mod sim_line_flags {
-    pub const RED: u8 = 1 << 0;
-    pub const INVERTED: u8 = 1 << 1;
-    pub const LEFT_EXTENSION: u8 = 1 << 2;
-    pub const RIGHT_EXTENSION: u8 = 1 << 3;
-}
+pub const RED: u8 = 1 << 0;
+pub const INVERTED: u8 = 1 << 1;
+pub const LEFT_EXTENSION: u8 = 1 << 2;
+pub const RIGHT_EXTENSION: u8 = 1 << 3;
 
 pub(in crate::formats::lrb) static SIMLINE: Lazy<ModHandler> = Lazy::new(|| ModHandler {
     flags: mod_flags::EXTRA_DATA | mod_flags::PHYSICS | mod_flags::SCENERY,
@@ -34,14 +32,14 @@ pub(in crate::formats::lrb) static SIMLINE: Lazy<ModHandler> = Lazy::new(|| ModH
             let y1 = cursor.read_f64::<LittleEndian>()?;
             let x2 = cursor.read_f64::<LittleEndian>()?;
             let y2 = cursor.read_f64::<LittleEndian>()?;
-            let line_type = if line_flags & sim_line_flags::RED != 0 {
+            let line_type = if line_flags & RED != 0 {
                 LineType::RED
             } else {
                 LineType::BLUE
             };
-            let flipped = line_flags & sim_line_flags::INVERTED != 0;
-            let left_extension = line_flags & sim_line_flags::LEFT_EXTENSION != 0;
-            let right_extension = line_flags & sim_line_flags::RIGHT_EXTENSION != 0;
+            let flipped = line_flags & INVERTED != 0;
+            let left_extension = line_flags & LEFT_EXTENSION != 0;
+            let right_extension = line_flags & RIGHT_EXTENSION != 0;
             let base_line = Line {
                 id,
                 x1,
@@ -66,16 +64,16 @@ pub(in crate::formats::lrb) static SIMLINE: Lazy<ModHandler> = Lazy::new(|| ModH
         for simulation_line in &internal.simulation_lines {
             let mut line_flags: u8 = 0;
             if simulation_line.base_line.line_type == LineType::RED {
-                line_flags |= sim_line_flags::RED;
+                line_flags |= RED;
             }
             if simulation_line.flipped {
-                line_flags |= sim_line_flags::INVERTED;
+                line_flags |= INVERTED;
             }
             if simulation_line.left_extension {
-                line_flags |= sim_line_flags::LEFT_EXTENSION;
+                line_flags |= LEFT_EXTENSION;
             }
             if simulation_line.right_extension {
-                line_flags |= sim_line_flags::RIGHT_EXTENSION;
+                line_flags |= RIGHT_EXTENSION;
             }
 
             buffer.write_u32::<LittleEndian>(simulation_line.base_line.id)?;
