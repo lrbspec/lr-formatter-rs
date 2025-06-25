@@ -25,7 +25,8 @@ jobs:
 
       - uses: actions-rs/toolchain@v1
         with:
-          rust-version: stable
+          toolchain: stable
+          override: true
 
       - run: |
           cargo fmt --all -- --check || {
