@@ -21,7 +21,7 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - uses: actions/setup-rust@v1
+      - uses: actions-rs/toolchain@v1
         with:
           rust-version: stable
 
