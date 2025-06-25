@@ -8,12 +8,11 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use crate::{
     TrackReadError,
     formats::{
-        internal::{GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine},
+        internal::{GridVersion, InternalTrackFormat, Line, LineType},
         trk::{
             FEATURE_BACKGROUND_COLOR_B, FEATURE_BACKGROUND_COLOR_G, FEATURE_BACKGROUND_COLOR_R,
             FEATURE_GRAVITY_WELL_SIZE, FEATURE_LINE_COLOR_B, FEATURE_LINE_COLOR_G,
             FEATURE_START_ZOOM, FEATURE_TRIGGERS, FEATURE_X_GRAVITY, FEATURE_Y_GRAVITY,
-            KNOWN_FEATURES,
         },
     },
     util::{StringLength, bytes_to_hex_string, parse_string},
@@ -53,14 +52,8 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
     let mut included_features: HashSet<&str> = Default::default();
 
     for feature in feature_string.split(';').filter(|s| !s.is_empty()) {
-        if KNOWN_FEATURES.contains(feature) {
-            included_features.insert(feature);
-        } else {
-            return Err(TrackReadError::InvalidData {
-                name: "feature".to_string(),
-                value: feature.to_string(),
-            });
-        }
+        included_features.insert(&feature);
+        // TODO: Attach warning if feature not accounted for
     }
 
     parsed_track.grid_version = if included_features.contains(FEATURE_6_1) {
