@@ -1,0 +1,24 @@
+name: Format
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-rust@v1
+        with:
+          rust-version: stable
+
+      - run: |
+          cargo fmt --all -- --check || {
+            echo "::error::Code is not formatted. Run 'cargo fmt' and commit the changes.";
+            exit 1;
+          }
