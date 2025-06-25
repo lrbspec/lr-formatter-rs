@@ -174,7 +174,14 @@ pub fn read(data: &[u8], track_index: Option<u32>) -> Result<InternalTrackFormat
     }
 
     if let Some(_) = target_track.get("trackData") {
-        // TODO: Enable zero start (don't bother parsing)
+        let rider = parsed_track
+            .riders
+            .get_mut(0)
+            .ok_or(TrackReadError::Other {
+                message: "Internal track should have contained an initial rider".to_string(),
+            })?;
+        rider.start_velocity.x = 0.0;
+        rider.start_velocity.y = 0.0;
     }
 
     if let Some(val) = target_track.get("data") {

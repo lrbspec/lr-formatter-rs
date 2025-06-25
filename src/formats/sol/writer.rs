@@ -127,8 +127,12 @@ pub fn write(internal: &InternalTrackFormat) -> Result<Vec<u8>, TrackWriteError>
     track.insert("level".to_string(), Amf0Value::Number(line_count));
     track.insert("data".to_string(), Amf0Value::ECMAArray(line_array_object));
 
-    // TODO: Insert if zero start
-    // track.insert("trackData".to_string(), Amf0Value::ECMAArray(track_data));
+    if let Some(rider) = internal.riders.get(0) {
+        if rider.start_velocity.x == 0.0 && rider.start_velocity.y == 0.0 {
+            // Insert for zero start
+            track.insert("trackData".to_string(), Amf0Value::ECMAArray(track_data));
+        }
+    }
 
     let mut track_list = HashMap::new();
     track_list.insert("0".to_string(), Amf0Value::Object(track));
