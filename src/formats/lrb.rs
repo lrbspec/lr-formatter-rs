@@ -2,6 +2,7 @@
 
 mod base;
 mod common;
+mod mod_flags;
 mod reader;
 mod writer;
 
@@ -12,14 +13,6 @@ use crate::{TrackReadError, TrackWriteError, formats::internal::InternalTrackFor
 use base::{GRIDVER, LABEL, SCNLINE, SIMLINE, STARTOFFSET};
 use once_cell::sync::Lazy;
 use std::{collections::HashMap, io::Cursor};
-
-mod mod_flags {
-    pub(crate) const REQUIRED: u8 = 1 << 0;
-    pub(crate) const PHYSICS: u8 = 1 << 1;
-    pub(crate) const CAMERA: u8 = 1 << 2;
-    pub(crate) const SCENERY: u8 = 1 << 3;
-    pub(crate) const EXTRA_DATA: u8 = 1 << 4;
-}
 
 struct ModHandler {
     flags: u8,
