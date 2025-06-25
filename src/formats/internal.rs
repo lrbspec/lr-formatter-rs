@@ -52,63 +52,118 @@ pub struct SceneryLine {
     pub width: Option<f64>,
 }
 
-/// Enum for describing track properties that can change by trigger events
+/// A trigger event caused by the timeline reaching a specific frame
 #[derive(Debug, Clone)]
-pub enum DynamicTrackProperty {
-    CameraZoom {
-        zoom_level: f64,
-    },
-    CameraPan {
-        /// Percent camera size (based on zoom and viewport size) offset from default position
-        percent_offset: Vec2,
-        /// Width and height of the camera's collider, what the rider collides with to keep the camera focused
-        bounds_collision_size: Vec2,
-        /// Exact camera size in pixels offset from default position
-        exact_offset: Vec2,
-    },
-    CameraFocus {
-        /// Amount of weight each rider has on where the camera focuses
-        rider_weights: Vec<f64>,
-    },
-    /// Known in linerider.com as "time remap" triggers, causes the timeline to speed up or slow down by some multiplier
-    TimelineSpeed {
-        speed_multiplier: f64,
-    },
-    Gravity(Vec2),
-    /// Determines the visibility of a layer by cycling it between on and off
-    LayerVisibility {
-        /// How long a layer is on during a cycle
-        cycle_on: u32,
-        /// How long a layer is off during a cycle
-        cycle_off: u32,
-        /// How many frames into the cycle this trigger starts (default is 0 frames into the "on" phase)
-        offset: u32,
-    },
-    LayerColor {
-        layer_id: u32,
-        color: RGBColor,
-    },
-    BackgroundColor {
-        color: RGBColor,
-    },
-    SkinStyle {
-        style_sheets: Vec<String>,
-    },
+pub struct FrameReachedEvent {
+    pub frame: u32,
 }
 
-/// Types of trigger events that can happen during a track
-// TODO: Potentially move into trigger metadata property? (How?)
-pub enum TriggerEventType {
-    FrameReached { frame: u32 },
-    LineHit { line_id: u32 },
+/// A trigger event caused by a line being hit
+#[derive(Debug, Clone)]
+pub struct LintHitEvent {
+    pub line_id: u32,
 }
 
-// TODO: Finish this
+// TODO: Figure out how to convert between LRO zoom and .com zoom
 #[derive(Debug, Clone)]
-pub enum EventListMetadata {
-    SmoothingStrength(f64),
-    SmoothingEnabled(bool),
-    SixtyFps(bool),
+pub struct CameraZoomTrigger {
+    pub zoom_level: f64,
+    pub trigger_event: FrameReachedEvent,
+}
+
+// TODO: Figure out how to convert this to a regular camera zoom trigger
+#[derive(Debug, Clone)]
+pub struct LegacyCameraZoomTrigger {
+    pub zoom_level: f64,
+    pub trigger_event: LintHitEvent,
+}
+
+#[derive(Debug, Clone)]
+pub struct CameraPanTrigger {
+    /// Percent camera size (based on zoom and viewport size) offset from default position
+    pub percent_offset: Vec2,
+    /// Width and height of the camera's collider, what the rider collides with to keep the camera focused
+    pub bounds_collision_size: Vec2,
+    /// Exact camera size in pixels offset from default position
+    pub exact_offset: Vec2,
+    pub trigger_event: FrameReachedEvent,
+}
+
+#[derive(Debug, Clone)]
+pub struct CameraFocusTrigger {
+    /// Amount of weight each rider has on where the camera focuses
+    pub rider_weights: Vec<f64>,
+    pub trigger_event: FrameReachedEvent,
+}
+
+/// Known in linerider.com as "time remap" triggers, causes the timeline to speed up or slow down by some multiplier
+#[derive(Debug, Clone)]
+pub struct TimelineSpeedTrigger {
+    pub speed_multiplier: f64,
+    pub trigger_event: FrameReachedEvent,
+}
+
+// TODO: LRO writes gravity as (0, 1) and scales internally, whereas .com writes gravity as (0, 0.175) and doesn't scale
+#[derive(Debug, Clone)]
+pub struct GravityTrigger {
+    pub strength: Vec2,
+    pub trigger_event: FrameReachedEvent,
+}
+
+/// Determines the visibility of a layer by cycling it between on and off
+#[derive(Debug, Clone)]
+pub struct LayerVisibilityTrigger {
+    /// How long a layer is on during a cycle
+    pub cycle_on: u32,
+    /// How long a layer is off during a cycle
+    pub cycle_off: u32,
+    /// How many frames into the cycle this trigger starts (default is 0 frames into the "on" phase)
+    pub offset: u32,
+    pub trigger_event: FrameReachedEvent,
+}
+
+// TODO: This is intended for LRO color triggers acting on the base layer
+#[derive(Debug, Clone)]
+pub struct LayerColorTrigger {
+    pub layer_id: u32,
+    pub color: RGBColor,
+    pub trigger_event: FrameReachedEvent,
+}
+
+#[derive(Debug, Clone)]
+pub struct BackgroundColorTrigger {
+    pub color: RGBColor,
+    pub trigger_event: FrameReachedEvent,
+}
+
+#[derive(Debug, Clone)]
+pub struct CameraZoomTriggerGroup {
+    pub smoothing: u32,
+    pub triggers: Vec<CameraZoomTrigger>,
+}
+
+#[derive(Debug, Clone)]
+pub struct CameraPanTriggerGroup {
+    pub smoothing: u32,
+    pub triggers: Vec<CameraPanTrigger>,
+}
+
+#[derive(Debug, Clone)]
+pub struct CameraFocusTriggerGroup {
+    pub smoothing: u32,
+    pub triggers: Vec<CameraFocusTrigger>,
+}
+
+#[derive(Debug, Clone)]
+pub struct TimelineSpeedTriggerGroup {
+    pub interpolate_speeds: bool,
+    pub triggers: Vec<TimelineSpeedTrigger>,
+}
+
+#[derive(Debug, Clone)]
+pub struct LayerVisibilityTriggerGroup {
+    pub sixty_fps: bool,
+    pub triggers: Vec<LayerVisibilityTrigger>,
 }
 
 #[derive(Debug, Clone)]
@@ -164,6 +219,16 @@ pub struct InternalTrackFormat {
     pub riders: Vec<Rider>,
     pub layers: Vec<Layer>,
     pub audio: Option<Audio>,
+    pub rider_skin_stylesheets: Vec<String>,
+    pub camera_zoom_triggers: CameraZoomTriggerGroup,
+    pub legacy_camera_zoom_triggers: Vec<LegacyCameraZoomTrigger>,
+    pub camera_pan_triggers: CameraPanTriggerGroup,
+    pub camera_focus_triggers: CameraFocusTriggerGroup,
+    pub timeline_speed_triggers: TimelineSpeedTriggerGroup,
+    pub gravity_triggers: Vec<GravityTrigger>,
+    pub layer_visibility_triggers: LayerVisibilityTriggerGroup,
+    pub layer_color_triggers: Vec<LayerColorTrigger>,
+    pub background_color_triggers: Vec<BackgroundColorTrigger>,
 }
 
 impl InternalTrackFormat {
@@ -201,6 +266,63 @@ impl InternalTrackFormat {
                 folder_id: None,
             }],
             audio: None,
+            rider_skin_stylesheets: vec![],
+            camera_zoom_triggers: CameraZoomTriggerGroup {
+                smoothing: 20,
+                triggers: vec![CameraZoomTrigger {
+                    zoom_level: 1.0,
+                    trigger_event: FrameReachedEvent { frame: 0 },
+                }],
+            },
+            legacy_camera_zoom_triggers: vec![],
+            camera_pan_triggers: CameraPanTriggerGroup {
+                smoothing: 20,
+                triggers: vec![CameraPanTrigger {
+                    exact_offset: Vec2 { x: 0.0, y: 0.0 },
+                    bounds_collision_size: Vec2 { x: 0.4, y: 0.4 },
+                    percent_offset: Vec2 { x: 0.0, y: 0.0 },
+                    trigger_event: FrameReachedEvent { frame: 0 },
+                }],
+            },
+            camera_focus_triggers: CameraFocusTriggerGroup {
+                smoothing: 20,
+                triggers: vec![CameraFocusTrigger {
+                    rider_weights: vec![1.0, 0.0, 0.0],
+                    trigger_event: FrameReachedEvent { frame: 0 },
+                }],
+            },
+            timeline_speed_triggers: TimelineSpeedTriggerGroup {
+                interpolate_speeds: false,
+                triggers: vec![TimelineSpeedTrigger {
+                    speed_multiplier: 1.0,
+                    trigger_event: FrameReachedEvent { frame: 0 },
+                }],
+            },
+            gravity_triggers: vec![GravityTrigger {
+                strength: Vec2 { x: 0.0, y: 1.0 },
+                trigger_event: FrameReachedEvent { frame: 0 },
+            }],
+            layer_visibility_triggers: LayerVisibilityTriggerGroup {
+                sixty_fps: false,
+                triggers: vec![],
+            },
+            layer_color_triggers: vec![LayerColorTrigger {
+                layer_id: 0,
+                color: RGBColor {
+                    red: 0,
+                    green: 0,
+                    blue: 0,
+                },
+                trigger_event: FrameReachedEvent { frame: 0 },
+            }],
+            background_color_triggers: vec![BackgroundColorTrigger {
+                color: RGBColor {
+                    red: 255,
+                    green: 255,
+                    blue: 255,
+                },
+                trigger_event: FrameReachedEvent { frame: 0 },
+            }],
         }
     }
 }
