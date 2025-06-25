@@ -10,14 +10,14 @@ use std::io::Write;
 
 pub(in crate::formats::lrb) static LABEL: Lazy<ModHandler> = Lazy::new(|| ModHandler {
     flags: mod_flags::EXTRA_DATA,
-    read: Box::new(|cursor, output| {
-        output.title = parse_string::<LittleEndian>(cursor, StringLength::U16)?;
+    read: Box::new(|cursor, internal| {
+        internal.title = parse_string::<LittleEndian>(cursor, StringLength::U16)?;
 
         Ok(())
     }),
-    write: Box::new(|buffer, internal| {
-        buffer.write_u16::<LittleEndian>(internal.title.len() as u16)?;
-        buffer.write_all(internal.title.as_bytes())?;
+    write: Box::new(|cursor, internal| {
+        cursor.write_u16::<LittleEndian>(internal.title.len() as u16)?;
+        cursor.write_all(internal.title.as_bytes())?;
 
         Ok(())
     }),

@@ -3,19 +3,20 @@ use crate::{
     TrackReadError,
     formats::{
         internal::{
-            GridVersion, InternalTrackFormat, LineType, Line, SceneryLine, SimulationLine, Vec2,
+            GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine, Vec2,
         },
         trackjson::LRAJsonArrayLine,
     },
 };
 
 pub fn read(json_str: &str) -> Result<InternalTrackFormat, TrackReadError> {
-    let mut parsed_track = InternalTrackFormat::new();
-    let track: JsonTrack = serde_json::from_str(json_str).map_err(|err| TrackReadError::Other {
-        message: format!("Failed to deserialize json track: {}", err),
-    })?;
+    let mut internal = InternalTrackFormat::new();
+    let json_track: JsonTrack =
+        serde_json::from_str(json_str).map_err(|err| TrackReadError::Other {
+            message: format!("Failed to deserialize json track: {}", err),
+        })?;
 
-    parsed_track.grid_version = match track.version.as_str() {
+    internal.grid_version = match json_track.version.as_str() {
         "6.0" => GridVersion::V6_0,
         "6.1" => GridVersion::V6_1,
         "6.2" => GridVersion::V6_2,
@@ -27,7 +28,7 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat, TrackReadError> {
         }
     };
 
-    if let Some(line_list) = track.lines {
+    if let Some(line_list) = json_track.lines {
         for line in line_list {
             let line_type = match line.line_type {
                 0 => LineType::BLUE,
@@ -51,7 +52,7 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat, TrackReadError> {
             };
 
             if line.line_type == 2 {
-                parsed_track.scenery_lines.push(SceneryLine {
+                internal.scenery_lines.push(SceneryLine {
                     base_line,
                     width: line.width,
                 });
@@ -67,7 +68,7 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat, TrackReadError> {
                     });
                 };
 
-                parsed_track.simulation_lines.push(SimulationLine {
+                internal.simulation_lines.push(SimulationLine {
                     base_line,
                     flipped: line.flipped.ok_or_else(|| TrackReadError::InvalidData {
                         name: "line flipped".to_string(),
@@ -82,7 +83,7 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat, TrackReadError> {
     }
 
     // Legacy line array
-    if let Some(line_list) = track.line_array {
+    if let Some(line_list) = json_track.line_array {
         for line in line_list {
             match line {
                 LRAJsonArrayLine::BlueLine(id, x1, y1, x2, y2, extended, flipped) => {
@@ -95,7 +96,7 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat, TrackReadError> {
                         line_type: LineType::BLUE,
                     };
 
-                    parsed_track.simulation_lines.push(SimulationLine {
+                    internal.simulation_lines.push(SimulationLine {
                         base_line,
                         flipped,
                         left_extension: extended == 1 || extended == 3,
@@ -124,7 +125,7 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat, TrackReadError> {
                         line_type: LineType::RED,
                     };
 
-                    parsed_track.simulation_lines.push(SimulationLine {
+                    internal.simulation_lines.push(SimulationLine {
                         base_line,
                         flipped,
                         left_extension: extended == 1 || extended == 3,
@@ -142,7 +143,7 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat, TrackReadError> {
                         line_type: LineType::GREEN,
                     };
 
-                    parsed_track.scenery_lines.push(SceneryLine {
+                    internal.scenery_lines.push(SceneryLine {
                         base_line,
                         width: None,
                     });
@@ -151,28 +152,28 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat, TrackReadError> {
         }
     }
 
-    parsed_track.start_position = Vec2 {
-        x: track.start_pos.x,
-        y: track.start_pos.y,
+    internal.start_position = Vec2 {
+        x: json_track.start_pos.x,
+        y: json_track.start_pos.y,
     };
 
-    parsed_track.title = track.label;
+    internal.title = json_track.label;
 
-    if let Some(creator) = track.creator {
-        parsed_track.artist = creator;
+    if let Some(creator) = json_track.creator {
+        internal.artist = creator;
     }
-    if let Some(description) = track.description {
-        parsed_track.description = description;
+    if let Some(description) = json_track.description {
+        internal.description = description;
     }
-    if let Some(duration) = track.duration {
-        parsed_track.duration = duration;
+    if let Some(duration) = json_track.duration {
+        internal.duration = duration;
     }
-    if let Some(script) = track.script {
-        parsed_track.script = script;
+    if let Some(script) = json_track.script {
+        internal.script = script;
     }
 
     // TODO: These fields need parsing into the internal format still
     // start_zoom, zero_start, line_based_triggers, time_based_triggers, x_gravity, y_gravity, gravity_well_size,
     // background_color_red/green/blue, line_color_red/green/blue
-    Ok(parsed_track)
+    Ok(internal)
 }

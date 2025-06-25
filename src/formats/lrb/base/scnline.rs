@@ -16,7 +16,7 @@ use once_cell::sync::Lazy;
 
 pub(in crate::formats::lrb) static SCNLINE: Lazy<ModHandler> = Lazy::new(|| ModHandler {
     flags: mod_flags::EXTRA_DATA | mod_flags::SCENERY,
-    read: Box::new(|cursor, output| {
+    read: Box::new(|cursor, internal| {
         let num_lines = cursor.read_u32::<LittleEndian>()?;
 
         for _ in 0..num_lines {
@@ -26,7 +26,7 @@ pub(in crate::formats::lrb) static SCNLINE: Lazy<ModHandler> = Lazy::new(|| ModH
             let x2 = cursor.read_f64::<LittleEndian>()?;
             let y2 = cursor.read_f64::<LittleEndian>()?;
 
-            output.scenery_lines.push(SceneryLine {
+            internal.scenery_lines.push(SceneryLine {
                 base_line: Line {
                     id,
                     x1,
@@ -41,14 +41,14 @@ pub(in crate::formats::lrb) static SCNLINE: Lazy<ModHandler> = Lazy::new(|| ModH
 
         Ok(())
     }),
-    write: Box::new(|buffer, internal| {
-        buffer.write_u32::<LittleEndian>(internal.scenery_lines.len() as u32)?;
+    write: Box::new(|cursor, internal| {
+        cursor.write_u32::<LittleEndian>(internal.scenery_lines.len() as u32)?;
         for scenery_line in &internal.scenery_lines {
-            buffer.write_u32::<LittleEndian>(scenery_line.base_line.id)?;
-            buffer.write_f64::<LittleEndian>(scenery_line.base_line.x1)?;
-            buffer.write_f64::<LittleEndian>(scenery_line.base_line.y1)?;
-            buffer.write_f64::<LittleEndian>(scenery_line.base_line.x2)?;
-            buffer.write_f64::<LittleEndian>(scenery_line.base_line.y2)?;
+            cursor.write_u32::<LittleEndian>(scenery_line.base_line.id)?;
+            cursor.write_f64::<LittleEndian>(scenery_line.base_line.x1)?;
+            cursor.write_f64::<LittleEndian>(scenery_line.base_line.y1)?;
+            cursor.write_f64::<LittleEndian>(scenery_line.base_line.x2)?;
+            cursor.write_f64::<LittleEndian>(scenery_line.base_line.y2)?;
         }
 
         Ok(())

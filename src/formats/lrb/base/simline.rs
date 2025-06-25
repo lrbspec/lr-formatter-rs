@@ -23,7 +23,7 @@ pub const FLAG_RIGHT_EXTENSION: u8 = 1 << 3;
 
 pub(in crate::formats::lrb) static SIMLINE: Lazy<ModHandler> = Lazy::new(|| ModHandler {
     flags: mod_flags::EXTRA_DATA | mod_flags::PHYSICS | mod_flags::SCENERY,
-    read: Box::new(|cursor, output| {
+    read: Box::new(|cursor, internal| {
         let num_lines = cursor.read_u32::<LittleEndian>()?;
         for _ in 0..num_lines {
             let id = cursor.read_u32::<LittleEndian>()?;
@@ -48,7 +48,7 @@ pub(in crate::formats::lrb) static SIMLINE: Lazy<ModHandler> = Lazy::new(|| ModH
                 y2,
                 line_type,
             };
-            output.simulation_lines.push(SimulationLine {
+            internal.simulation_lines.push(SimulationLine {
                 base_line,
                 flipped,
                 left_extension,
@@ -59,8 +59,8 @@ pub(in crate::formats::lrb) static SIMLINE: Lazy<ModHandler> = Lazy::new(|| ModH
 
         Ok(())
     }),
-    write: Box::new(|buffer, internal| {
-        buffer.write_u32::<LittleEndian>(internal.simulation_lines.len() as u32)?;
+    write: Box::new(|cursor, internal| {
+        cursor.write_u32::<LittleEndian>(internal.simulation_lines.len() as u32)?;
         for simulation_line in &internal.simulation_lines {
             let mut line_flags: u8 = 0;
             if simulation_line.base_line.line_type == LineType::RED {
@@ -76,12 +76,12 @@ pub(in crate::formats::lrb) static SIMLINE: Lazy<ModHandler> = Lazy::new(|| ModH
                 line_flags |= FLAG_RIGHT_EXTENSION;
             }
 
-            buffer.write_u32::<LittleEndian>(simulation_line.base_line.id)?;
-            buffer.write_u8(line_flags)?;
-            buffer.write_f64::<LittleEndian>(simulation_line.base_line.x1)?;
-            buffer.write_f64::<LittleEndian>(simulation_line.base_line.y1)?;
-            buffer.write_f64::<LittleEndian>(simulation_line.base_line.x2)?;
-            buffer.write_f64::<LittleEndian>(simulation_line.base_line.y2)?;
+            cursor.write_u32::<LittleEndian>(simulation_line.base_line.id)?;
+            cursor.write_u8(line_flags)?;
+            cursor.write_f64::<LittleEndian>(simulation_line.base_line.x1)?;
+            cursor.write_f64::<LittleEndian>(simulation_line.base_line.y1)?;
+            cursor.write_f64::<LittleEndian>(simulation_line.base_line.x2)?;
+            cursor.write_f64::<LittleEndian>(simulation_line.base_line.y2)?;
         }
 
         Ok(())

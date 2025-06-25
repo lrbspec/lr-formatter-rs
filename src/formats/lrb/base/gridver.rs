@@ -12,7 +12,7 @@ use once_cell::sync::Lazy;
 
 pub(in crate::formats::lrb) static GRIDVER: Lazy<ModHandler> = Lazy::new(|| ModHandler {
     flags: mod_flags::EXTRA_DATA | mod_flags::PHYSICS,
-    read: Box::new(|cursor, output| {
+    read: Box::new(|cursor, internal| {
         let grid_version_number = cursor.read_u8()?;
         let grid_version = match grid_version_number {
             0 => GridVersion::V6_2,
@@ -26,18 +26,18 @@ pub(in crate::formats::lrb) static GRIDVER: Lazy<ModHandler> = Lazy::new(|| ModH
             }
         };
 
-        output.grid_version = grid_version;
+        internal.grid_version = grid_version;
 
         Ok(())
     }),
-    write: Box::new(|buffer, input| {
-        let version_number = match input.grid_version {
+    write: Box::new(|cursor, internal| {
+        let version_number = match internal.grid_version {
             GridVersion::V6_0 => 2,
             GridVersion::V6_1 => 1,
             GridVersion::V6_2 => 0,
         };
 
-        buffer.write_u8(version_number)?;
+        cursor.write_u8(version_number)?;
 
         Ok(())
     }),

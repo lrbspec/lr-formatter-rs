@@ -8,7 +8,7 @@ use byteorder::{LittleEndian, ReadBytesExt};
 use std::io::{Cursor, Read, Seek, SeekFrom};
 
 pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
-    let mut parsed_track = InternalTrackFormat::new();
+    let mut internal = InternalTrackFormat::new();
     let mut cursor = Cursor::new(data);
 
     // Magic number
@@ -82,7 +82,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
         let mod_identifier = (name.as_str(), version);
         match SUPPORTED_MODS.get(&mod_identifier) {
             Some(mod_handler) => {
-                (mod_handler.read)(&mut cursor, &mut parsed_track)?;
+                (mod_handler.read)(&mut cursor, &mut internal)?;
             }
             None => {
                 return Err(TrackReadError::InvalidData {
@@ -95,5 +95,5 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
         cursor.seek(SeekFrom::Start(current_position))?;
     }
 
-    Ok(parsed_track)
+    Ok(internal)
 }

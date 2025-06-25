@@ -25,7 +25,7 @@ use super::{
 };
 
 pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
-    let mut parsed_track = InternalTrackFormat::new();
+    let mut internal = InternalTrackFormat::new();
     let mut cursor = Cursor::new(data);
 
     // Magic number
@@ -57,7 +57,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
         // TODO: Attach warning if feature not accounted for
     }
 
-    parsed_track.grid_version = if included_features.contains(FEATURE_6_1) {
+    internal.grid_version = if included_features.contains(FEATURE_6_1) {
         GridVersion::V6_1
     } else {
         GridVersion::V6_2
@@ -98,8 +98,8 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
         let seconds_offset = song_data[1].parse::<f64>()?;
     }
 
-    parsed_track.start_position.x = cursor.read_f64::<LittleEndian>()?;
-    parsed_track.start_position.y = cursor.read_f64::<LittleEndian>()?;
+    internal.start_position.x = cursor.read_f64::<LittleEndian>()?;
+    internal.start_position.y = cursor.read_f64::<LittleEndian>()?;
 
     let line_count = cursor.read_u32::<LittleEndian>()?;
 
@@ -172,12 +172,12 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
         };
 
         if line_type == LineType::GREEN {
-            parsed_track.scenery_lines.push(SceneryLine {
+            internal.scenery_lines.push(SceneryLine {
                 base_line,
                 width: line_scenery_width,
             });
         } else {
-            parsed_track.simulation_lines.push(SimulationLine {
+            internal.simulation_lines.push(SimulationLine {
                 base_line,
                 flipped: line_inv,
                 left_extension: line_ext & 0x1 != 0,
@@ -187,7 +187,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
         }
     }
 
-    for line in parsed_track.scenery_lines.iter_mut() {
+    for line in internal.scenery_lines.iter_mut() {
         max_id += 1;
         line.base_line.id = max_id;
     }
@@ -199,7 +199,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
     // TODO: REMOUNT, ZEROSTART, FRICTIONLESS
 
     if current == end {
-        return Ok(parsed_track);
+        return Ok(internal);
     }
 
     // Metadata section
@@ -316,5 +316,5 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
 
     // TODO: STARTZOOM, XGRAVITY, YGRAVITY, GRAVITYWELLSIZE, BGCOLORR/G/B, LINECOLORR/G/B, TRIGGERS
 
-    Ok(parsed_track)
+    Ok(internal)
 }

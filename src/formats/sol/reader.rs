@@ -11,7 +11,7 @@ use crate::{
 };
 
 pub fn read(data: &[u8], track_index: Option<u32>) -> Result<InternalTrackFormat, TrackReadError> {
-    let mut parsed_track = InternalTrackFormat::new();
+    let mut internal = InternalTrackFormat::new();
     let mut cursor = Cursor::new(data);
 
     // Magic number
@@ -104,7 +104,7 @@ pub fn read(data: &[u8], track_index: Option<u32>) -> Result<InternalTrackFormat
             })?;
 
     if let Some(val) = target_track.get("label") {
-        parsed_track.title = val
+        internal.title = val
             .clone()
             .get_string()
             .ok_or(TrackReadError::InvalidData {
@@ -122,7 +122,7 @@ pub fn read(data: &[u8], track_index: Option<u32>) -> Result<InternalTrackFormat
                 value: format!("{:?}", val),
             })?;
 
-        parsed_track.grid_version = match version_string.as_str() {
+        internal.grid_version = match version_string.as_str() {
             "6.0" => GridVersion::V6_0,
             "6.1" => GridVersion::V6_1,
             "6.2" => GridVersion::V6_2,
@@ -134,7 +134,7 @@ pub fn read(data: &[u8], track_index: Option<u32>) -> Result<InternalTrackFormat
             }
         }
     } else {
-        parsed_track.grid_version = GridVersion::V6_0
+        internal.grid_version = GridVersion::V6_0
     }
 
     if let Some(val) = target_track.get("startLine") {
@@ -150,7 +150,7 @@ pub fn read(data: &[u8], track_index: Option<u32>) -> Result<InternalTrackFormat
             name: "start line x".to_string(),
             value: format!("{:?}", start_position),
         })?;
-        parsed_track.start_position.x =
+        internal.start_position.x =
             start_x_amf
                 .clone()
                 .get_number()
@@ -163,7 +163,7 @@ pub fn read(data: &[u8], track_index: Option<u32>) -> Result<InternalTrackFormat
             name: "start line y".to_string(),
             value: format!("{:?}", start_position),
         })?;
-        parsed_track.start_position.y =
+        internal.start_position.y =
             start_y_amf
                 .clone()
                 .get_number()
@@ -174,12 +174,9 @@ pub fn read(data: &[u8], track_index: Option<u32>) -> Result<InternalTrackFormat
     }
 
     if let Some(_) = target_track.get("trackData") {
-        let rider = parsed_track
-            .riders
-            .get_mut(0)
-            .ok_or(TrackReadError::Other {
-                message: "Internal track should have contained an initial rider".to_string(),
-            })?;
+        let rider = internal.riders.get_mut(0).ok_or(TrackReadError::Other {
+            message: "Internal track should have contained an initial rider".to_string(),
+        })?;
         rider.start_velocity.x = 0.0;
         rider.start_velocity.y = 0.0;
     }
@@ -351,12 +348,12 @@ pub fn read(data: &[u8], track_index: Option<u32>) -> Result<InternalTrackFormat
             };
 
             if line_type == LineType::GREEN {
-                parsed_track.scenery_lines.push(SceneryLine {
+                internal.scenery_lines.push(SceneryLine {
                     base_line,
                     width: None,
                 });
             } else {
-                parsed_track.simulation_lines.push(SimulationLine {
+                internal.simulation_lines.push(SimulationLine {
                     base_line,
                     flipped,
                     left_extension,
@@ -367,5 +364,5 @@ pub fn read(data: &[u8], track_index: Option<u32>) -> Result<InternalTrackFormat
         }
     }
 
-    Ok(parsed_track)
+    Ok(internal)
 }

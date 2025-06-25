@@ -10,16 +10,16 @@ use once_cell::sync::Lazy;
 
 pub(in crate::formats::lrb) static STARTOFFSET: Lazy<ModHandler> = Lazy::new(|| ModHandler {
     flags: mod_flags::EXTRA_DATA | mod_flags::PHYSICS,
-    read: Box::new(|cursor, output| {
+    read: Box::new(|cursor, internal| {
         let x = cursor.read_f64::<LittleEndian>()?;
         let y = cursor.read_f64::<LittleEndian>()?;
-        output.start_position = Vec2 { x, y };
+        internal.start_position = Vec2 { x, y };
 
         Ok(())
     }),
-    write: Box::new(|buffer, internal| {
-        buffer.write_f64::<LittleEndian>(internal.start_position.x)?;
-        buffer.write_f64::<LittleEndian>(internal.start_position.y)?;
+    write: Box::new(|cursor, internal| {
+        cursor.write_f64::<LittleEndian>(internal.start_position.x)?;
+        cursor.write_f64::<LittleEndian>(internal.start_position.y)?;
         Ok(())
     }),
 });
