@@ -15,7 +15,8 @@ use crate::{
             FEATURE_START_ZOOM, FEATURE_TRIGGERS, FEATURE_X_GRAVITY, FEATURE_Y_GRAVITY,
         },
     },
-    internal::{SceneryLine, SimulationLine},
+    internal::{Audio, SceneryLine, SimulationLine},
+    trk::{FEATURE_FRICTIONLESS, FEATURE_REMOUNT, FEATURE_ZERO_START},
     util::{StringLength, bytes_to_hex_string, parse_string},
 };
 
@@ -93,9 +94,12 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
             });
         }
 
-        // TODO: Unused
         let name = song_data[0];
         let seconds_offset = song_data[1].parse::<f64>()?;
+        internal.audio = Some(Audio {
+            file_name: name.to_string(),
+            offset_until_start: -seconds_offset,
+        });
     }
 
     internal.start_position.x = cursor.read_f64::<LittleEndian>()?;
@@ -127,9 +131,8 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
         let mut line_multiplier: Option<f64> = None;
         let mut line_scenery_width: Option<f64> = None;
 
-        // TODO: Unused
-        let mut _line_zoom_target: Option<f32> = None;
-        let mut _line_zoom_frames: Option<i16> = None;
+        let mut line_zoom_target: Option<f32> = None;
+        let mut line_zoom_frames: Option<i16> = None;
 
         if line_type == LineType::RED && included_features.contains(FEATURE_RED_MULTIPLIER) {
             line_multiplier = Some(cursor.read_u8()? as f64);
@@ -143,8 +146,8 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
             if included_features.contains(FEATURE_IGNORABLE_TRIGGER) {
                 let has_zoom_trigger = cursor.read_u8()?;
                 if has_zoom_trigger == 1 {
-                    _line_zoom_target = Some(cursor.read_f32::<LittleEndian>()?);
-                    _line_zoom_frames = Some(cursor.read_i16::<LittleEndian>()?);
+                    line_zoom_target = Some(cursor.read_f32::<LittleEndian>()?);
+                    line_zoom_frames = Some(cursor.read_i16::<LittleEndian>()?);
                 }
             }
 
@@ -192,11 +195,22 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
         line.base_line.id = max_id;
     }
 
+    internal.zero_friction_riders = included_features.contains(FEATURE_FRICTIONLESS);
+
+    let rider = internal.riders.get_mut(0).ok_or(TrackReadError::Other {
+        message: "Internal track should have contained an initial rider".to_string(),
+    })?;
+
+    rider.can_remount = included_features.contains(FEATURE_REMOUNT);
+
+    if included_features.contains(FEATURE_ZERO_START) {
+        rider.start_velocity.x = 0.0;
+        rider.start_velocity.y = 0.0;
+    }
+
     let current = cursor.stream_position()?;
     let end = cursor.seek(SeekFrom::End(0))?;
     cursor.seek(SeekFrom::Start(current))?;
-
-    // TODO: REMOUNT, ZEROSTART, FRICTIONLESS
 
     if current == end {
         return Ok(internal);
