@@ -9,9 +9,9 @@ pub enum GridVersion {
 
 #[derive(Debug, Clone)]
 pub struct RGBColor {
-    red: u8,
-    green: u8,
-    blue: u8,
+    pub red: u8,
+    pub green: u8,
+    pub blue: u8,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -113,10 +113,10 @@ pub enum EventListMetadata {
 
 #[derive(Debug, Clone)]
 pub struct Rider {
-    start_position: Vec2,
-    start_velocity: Vec2,
-    start_angle: f64,
-    can_remount: bool,
+    pub start_position: Vec2,
+    pub start_velocity: Vec2,
+    pub start_angle: f64,
+    pub can_remount: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -141,9 +141,9 @@ pub enum Layer {
 #[derive(Debug, Clone)]
 pub struct Audio {
     // File name of the audio relative to the directory the track file was located in during save
-    file_name: String,
+    pub file_name: String,
     // Offset (in seconds) to delay the start of the audio
-    offset_until_start: f64,
+    pub offset_until_start: f64,
 }
 
 /// Malleable struct for storing implementation-agnostic track properties
