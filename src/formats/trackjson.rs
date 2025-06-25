@@ -67,7 +67,7 @@ enum FaultyU32 {
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
-struct Vec2 {
+struct V2 {
     x: f64,
     y: f64,
 }
@@ -110,6 +110,9 @@ struct JsonLine {
     width: Option<f64>,
 }
 
+const LAYER_TYPE_LAYER: u8 = 0;
+const LAYER_TYPE_FOLDER: u8 = 1;
+
 #[derive(Serialize, Deserialize, Debug)]
 struct JsonLayer {
     id: u32,
@@ -127,9 +130,9 @@ struct JsonLayer {
 #[derive(Serialize, Deserialize, Debug)]
 struct JsonRider {
     #[serde(rename = "startPosition")]
-    start_pos: Vec2,
+    start_pos: V2,
     #[serde(rename = "startVelocity")]
-    start_vel: Vec2,
+    start_vel: V2,
     #[serde(rename = "startAngle", skip_serializing_if = "Option::is_none")]
     angle: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -148,7 +151,7 @@ struct JsonTrack {
     riders: Option<Vec<JsonRider>>,
     script: Option<String>,
     #[serde(rename = "startPosition")]
-    start_pos: Vec2,
+    start_pos: V2,
     #[serde(rename = "linesArray", skip_serializing_if = "Option::is_none")]
     line_array: Option<Vec<LRAJsonArrayLine>>,
     #[serde(rename = "startZoom", skip_serializing_if = "Option::is_none")]

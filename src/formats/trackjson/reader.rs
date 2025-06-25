@@ -162,12 +162,15 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat, TrackReadError> {
     if let Some(creator) = json_track.creator {
         internal.artist = creator;
     }
+
     if let Some(description) = json_track.description {
         internal.description = description;
     }
+
     if let Some(duration) = json_track.duration {
         internal.duration = duration;
     }
+
     if let Some(script) = json_track.script {
         internal.script = script;
     }

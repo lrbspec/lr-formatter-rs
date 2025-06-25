@@ -1,7 +1,9 @@
-use super::{JsonLayer, JsonLine, JsonRider, JsonTrack, Vec2};
+use super::{JsonLayer, JsonLine, JsonRider, JsonTrack, V2};
 use crate::{
     TrackWriteError,
     formats::internal::{GridVersion, InternalTrackFormat, LineType},
+    internal::Layer,
+    trackjson::{FaultyU32, LAYER_TYPE_FOLDER, LAYER_TYPE_LAYER},
 };
 
 pub fn write(internal: &InternalTrackFormat) -> Result<String, TrackWriteError> {
@@ -12,6 +14,8 @@ pub fn write(internal: &InternalTrackFormat) -> Result<String, TrackWriteError> 
     };
 
     let mut lines = Vec::<JsonLine>::new();
+    let mut layers = Vec::<JsonLayer>::new();
+    let mut riders = Vec::<JsonRider>::new();
 
     for line in &internal.simulation_lines {
         let line_type = if line.base_line.line_type == LineType::BLUE {
@@ -53,7 +57,68 @@ pub fn write(internal: &InternalTrackFormat) -> Result<String, TrackWriteError> 
         });
     }
 
-    let start_pos = Vec2 {
+    for layer in &internal.layers {
+        match layer {
+            Layer::Layer {
+                id,
+                name,
+                color,
+                visible,
+                editable,
+                folder_id,
+            } => {
+                let json_folder_id = if let Some(valid_id) = folder_id {
+                    Some(FaultyU32::Valid(*valid_id))
+                } else {
+                    Some(FaultyU32::Invalid(-1))
+                };
+
+                layers.push(JsonLayer {
+                    id: *id,
+                    layer_type: LAYER_TYPE_LAYER,
+                    name: color.to_string() + &name.clone(),
+                    visible: *visible,
+                    editable: *editable,
+                    folder_id: json_folder_id,
+                    size: None,
+                });
+            }
+            Layer::Folder {
+                id,
+                name,
+                visible,
+                editable,
+                size,
+            } => {
+                layers.push(JsonLayer {
+                    id: *id,
+                    layer_type: LAYER_TYPE_FOLDER,
+                    name: name.clone(),
+                    visible: *visible,
+                    editable: *editable,
+                    folder_id: None,
+                    size: Some(*size),
+                });
+            }
+        }
+    }
+
+    for rider in &internal.riders {
+        riders.push(JsonRider {
+            start_pos: V2 {
+                x: rider.start_position.x,
+                y: rider.start_position.y,
+            },
+            start_vel: V2 {
+                x: rider.start_velocity.x,
+                y: rider.start_velocity.y,
+            },
+            angle: Some(rider.start_angle),
+            remountable: Some(rider.can_remount),
+        });
+    }
+
+    let start_pos = V2 {
         x: internal.start_position.x,
         y: internal.start_position.y,
     };
@@ -67,11 +132,10 @@ pub fn write(internal: &InternalTrackFormat) -> Result<String, TrackWriteError> 
         description: Some(internal.description.clone()),
         duration: Some(internal.duration),
         script: Some(internal.script.clone()),
-        layers: Some(Vec::<JsonLayer>::new()),
-        riders: Some(Vec::<JsonRider>::new()),
-        line_array: None,
+        layers: Some(layers),
+        riders: Some(riders),
+        line_array: None, // Deprecated line format
         time_based_triggers: None,
-        // TODO
         start_zoom: None,
         zero_start: None,
         line_based_triggers: None,
