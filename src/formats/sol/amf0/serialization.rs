@@ -65,7 +65,7 @@ fn serialize_bool(value: bool, bytes: &mut Vec<u8>) -> Result<(), Amf0Serializat
 }
 
 fn serialize_string(value: &String, bytes: &mut Vec<u8>) -> Result<(), Amf0SerializationError> {
-    if value.len() > (u16::max_value() as usize) {
+    if value.len() > (u16::MAX as usize) {
         return Err(Amf0SerializationError::NormalStringTooLong);
     }
 
@@ -81,7 +81,7 @@ fn serialize_object(
     for (name, value) in properties {
         bytes.write_u16::<BigEndian>(name.len() as u16)?;
         bytes.extend(name.as_bytes());
-        serialize_value(&value, bytes)?;
+        serialize_value(value, bytes)?;
     }
 
     bytes.write_u16::<BigEndian>(markers::UTF_8_EMPTY_MARKER)?;
@@ -96,7 +96,7 @@ fn serialize_strict_array(
     bytes.write_u32::<BigEndian>(array.len() as u32)?;
 
     for value in array {
-        serialize_value(&value, bytes)?;
+        serialize_value(value, bytes)?;
     }
 
     Ok(())
@@ -233,7 +233,7 @@ mod tests {
     #[test]
     fn error_when_string_length_greater_than_u16() {
         let mut value = String::new();
-        let max = (u16::max_value() as u32) + 1;
+        let max = (u16::MAX as u32) + 1;
         for _ in 0..max {
             value.push('a');
         }
@@ -241,10 +241,7 @@ mod tests {
         let input = vec![Amf0Value::Utf8String(value)];
         let result = serialize(&input);
 
-        assert!(match result {
-            Err(Amf0SerializationError::NormalStringTooLong) => true,
-            _ => false,
-        });
+        matches!(result, Err(Amf0SerializationError::NormalStringTooLong));
     }
 
     #[test]

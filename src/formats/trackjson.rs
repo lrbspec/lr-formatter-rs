@@ -20,9 +20,9 @@ use serde_boolean::option_bool_from_any;
 // b: 1 if ending/right extension
 #[derive(Debug)]
 enum LRAJsonArrayLine {
-    BlueLine(u32, f64, f64, f64, f64, u8, bool),
-    RedLine(u32, f64, f64, f64, f64, u8, bool, (), (), u32),
-    GreenLine(u32, f64, f64, f64, f64),
+    Standard(u32, f64, f64, f64, f64, u8, bool),
+    Acceleration(u32, f64, f64, f64, f64, u8, bool, (), (), u32),
+    Scenery(u32, f64, f64, f64, f64),
 }
 
 #[derive(Serialize, Deserialize, Debug)]

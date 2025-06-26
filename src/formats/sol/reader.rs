@@ -18,7 +18,7 @@ pub fn read(data: &[u8], track_index: Option<u32>) -> Result<InternalTrackFormat
     let mut magic_number = [0u8; 2];
     cursor.read_exact(&mut magic_number)?;
 
-    if &magic_number != &[0x00, 0xBF] {
+    if magic_number != [0x00, 0xBF] {
         return Err(TrackReadError::InvalidData {
             name: "magic number".to_string(),
             value: bytes_to_hex_string(&magic_number),
@@ -31,7 +31,7 @@ pub fn read(data: &[u8], track_index: Option<u32>) -> Result<InternalTrackFormat
     let mut tag = [0u8; 4];
     cursor.read_exact(&mut tag)?;
 
-    if &tag != &[b'T', b'C', b'S', b'O'] {
+    if tag != [b'T', b'C', b'S', b'O'] {
         return Err(TrackReadError::InvalidData {
             name: "header tag".to_string(),
             value: bytes_to_hex_string(&tag),
@@ -40,7 +40,7 @@ pub fn read(data: &[u8], track_index: Option<u32>) -> Result<InternalTrackFormat
 
     let mut marker = [0u8; 6];
     cursor.read_exact(&mut marker)?;
-    if &marker != &[0x00, 0x04, 0x00, 0x00, 0x00, 0x00] {
+    if marker != [0x00, 0x04, 0x00, 0x00, 0x00, 0x00] {
         return Err(TrackReadError::InvalidData {
             name: "header marker".to_string(),
             value: bytes_to_hex_string(&marker),
@@ -173,7 +173,7 @@ pub fn read(data: &[u8], track_index: Option<u32>) -> Result<InternalTrackFormat
                 })?;
     }
 
-    if let Some(_) = target_track.get("trackData") {
+    if target_track.contains_key("trackData") {
         let rider = internal.riders.get_mut(0).ok_or(TrackReadError::Other {
             message: "Internal track should have contained an initial rider".to_string(),
         })?;

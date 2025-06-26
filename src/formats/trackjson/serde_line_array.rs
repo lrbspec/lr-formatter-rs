@@ -67,7 +67,7 @@ impl<'de> Visitor<'de> for LRAJsonArrayLineVisitor {
                 let flipped: bool = seq
                     .next_element()?
                     .ok_or_else(|| DeError::invalid_length(7, &self))?;
-                Ok(LRAJsonArrayLine::BlueLine(
+                Ok(LRAJsonArrayLine::Standard(
                     id, x1, y1, x2, y2, extended, flipped,
                 ))
             }
@@ -95,19 +95,16 @@ impl<'de> Visitor<'de> for LRAJsonArrayLineVisitor {
                     .ok_or_else(|| DeError::invalid_length(7, &self))?;
 
                 let mut multiplier: u32 = 1;
-                match seq.next_element::<serde::de::IgnoredAny>()? {
-                    Some(_) => {
-                        let _: serde::de::IgnoredAny = seq
-                            .next_element()?
-                            .ok_or_else(|| DeError::invalid_length(9, &self))?;
-                        multiplier = seq
-                            .next_element()?
-                            .ok_or_else(|| DeError::invalid_length(10, &self))?;
-                    }
-                    None => {}
+                if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
+                    let _: serde::de::IgnoredAny = seq
+                        .next_element()?
+                        .ok_or_else(|| DeError::invalid_length(9, &self))?;
+                    multiplier = seq
+                        .next_element()?
+                        .ok_or_else(|| DeError::invalid_length(10, &self))?;
                 }
 
-                Ok(LRAJsonArrayLine::RedLine(
+                Ok(LRAJsonArrayLine::Acceleration(
                     id,
                     x1,
                     y1,
@@ -136,7 +133,7 @@ impl<'de> Visitor<'de> for LRAJsonArrayLineVisitor {
                 let y2: f64 = seq
                     .next_element()?
                     .ok_or_else(|| DeError::invalid_length(5, &self))?;
-                Ok(LRAJsonArrayLine::GreenLine(id, x1, y1, x2, y2))
+                Ok(LRAJsonArrayLine::Scenery(id, x1, y1, x2, y2))
             }
             _ => Err(DeError::custom(format!("Unknown line type: {}", line_type))),
         }

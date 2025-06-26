@@ -48,7 +48,7 @@ pub fn write(internal: &InternalTrackFormat) -> Result<Vec<u8>, TrackWriteError>
         let section_start = cursor.stream_position()?;
         let name = mod_identifer.0;
         let writer = &SUPPORTED_MODS[mod_identifer].write;
-        (writer)(&mut cursor, &internal)?;
+        (writer)(&mut cursor, internal)?;
 
         let section_end = cursor.stream_position()?;
         let section_length = section_end - section_start;

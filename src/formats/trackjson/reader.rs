@@ -86,7 +86,7 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat, TrackReadError> {
     if let Some(line_list) = json_track.line_array {
         for line in line_list {
             match line {
-                LRAJsonArrayLine::BlueLine(id, x1, y1, x2, y2, extended, flipped) => {
+                LRAJsonArrayLine::Standard(id, x1, y1, x2, y2, extended, flipped) => {
                     let base_line = Line {
                         id,
                         x1,
@@ -104,7 +104,7 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat, TrackReadError> {
                         multiplier: None,
                     });
                 }
-                LRAJsonArrayLine::RedLine(
+                LRAJsonArrayLine::Acceleration(
                     id,
                     x1,
                     y1,
@@ -133,7 +133,7 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat, TrackReadError> {
                         multiplier: Some(multiplier as f64),
                     });
                 }
-                LRAJsonArrayLine::GreenLine(id, x1, y1, x2, y2) => {
+                LRAJsonArrayLine::Scenery(id, x1, y1, x2, y2) => {
                     let base_line = Line {
                         id,
                         x1,

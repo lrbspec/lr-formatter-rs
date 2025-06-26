@@ -53,6 +53,12 @@ pub struct InternalTrackFormat {
     pub background_color_triggers: background_color::TriggerGroup,
 }
 
+impl Default for InternalTrackFormat {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl InternalTrackFormat {
     /// Creates a new `InternalTrackFormat` with recommended defaults
     pub fn new() -> Self {

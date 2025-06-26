@@ -14,18 +14,20 @@ use base::{GRIDVER, LABEL, SCNLINE, SIMLINE, STARTOFFSET};
 use once_cell::sync::Lazy;
 use std::{collections::HashMap, io::Cursor};
 
+type ReadLambda = Box<
+    dyn Fn(&mut Cursor<&[u8]>, &mut InternalTrackFormat) -> Result<(), TrackReadError>
+        + Send
+        + Sync,
+>;
+
+type WriteLambda = Box<
+    dyn Fn(&mut Cursor<Vec<u8>>, &InternalTrackFormat) -> Result<(), TrackWriteError> + Send + Sync,
+>;
+
 struct ModHandler {
     flags: u8,
-    read: Box<
-        dyn Fn(&mut Cursor<&[u8]>, &mut InternalTrackFormat) -> Result<(), TrackReadError>
-            + Send
-            + Sync,
-    >,
-    write: Box<
-        dyn Fn(&mut Cursor<Vec<u8>>, &InternalTrackFormat) -> Result<(), TrackWriteError>
-            + Send
-            + Sync,
-    >,
+    read: ReadLambda,
+    write: WriteLambda,
 }
 
 static SUPPORTED_MODS: Lazy<HashMap<(&'static str, u16), &'static Lazy<ModHandler>>> =

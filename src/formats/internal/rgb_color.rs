@@ -6,7 +6,7 @@ pub struct RGBColor {
 }
 
 impl RGBColor {
-    pub fn to_string(&self) -> String {
+    pub fn to_css_string(&self) -> String {
         format!("#{:02x}{:02x}{:02x}", self.red, self.green, self.blue)
     }
 }

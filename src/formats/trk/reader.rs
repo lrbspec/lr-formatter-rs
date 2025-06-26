@@ -33,7 +33,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
     let mut magic_number = [0u8; 4];
     cursor.read_exact(&mut magic_number)?;
 
-    if &magic_number != &[b'T', b'R', b'K', 0xF2] {
+    if magic_number != [b'T', b'R', b'K', 0xF2] {
         return Err(TrackReadError::InvalidData {
             name: "magic number".to_string(),
             value: bytes_to_hex_string(&magic_number),
@@ -54,7 +54,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
     let mut included_features: HashSet<&str> = Default::default();
 
     for feature in feature_string.split(';').filter(|s| !s.is_empty()) {
-        included_features.insert(&feature);
+        included_features.insert(feature);
         // TODO: Attach warning if feature not accounted for
     }
 
@@ -280,7 +280,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
                 for (i, trigger) in value.split('&').filter(|s| !s.is_empty()).enumerate() {
                     let values: Vec<&str> = trigger.split(':').filter(|s| !s.is_empty()).collect();
 
-                    if values.len() < 1 {
+                    if values.is_empty() {
                         return Err(TrackReadError::InvalidData {
                             name: "size of trigger data".to_string(),
                             value: "0".to_string(),

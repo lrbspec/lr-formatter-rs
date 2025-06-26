@@ -76,7 +76,7 @@ pub fn write(internal: &InternalTrackFormat) -> Result<String, TrackWriteError> 
                 layers.push(JsonLayer {
                     id: *id,
                     layer_type: Some(LAYER_TYPE_LAYER),
-                    name: color.to_string() + &name.clone(),
+                    name: color.to_css_string() + &name.clone(),
                     visible: *visible,
                     editable: Some(*editable),
                     folder_id: json_folder_id,

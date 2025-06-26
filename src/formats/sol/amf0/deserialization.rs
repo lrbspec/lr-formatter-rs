@@ -182,11 +182,7 @@ mod tests {
         let mut input = Cursor::new(vector);
         let result = deserialize(&mut input).unwrap();
 
-        let mut array = Vec::new();
-
-        array.push(Amf0Value::Number(1.0));
-        array.push(Amf0Value::Number(2.0));
-
+        let array = vec![Amf0Value::Number(1.0), Amf0Value::Number(2.0)];
         let expected = vec![Amf0Value::StrictArray(array)];
         assert_eq!(result, expected);
     }
