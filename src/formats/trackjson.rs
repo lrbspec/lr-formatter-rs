@@ -117,10 +117,10 @@ const LAYER_TYPE_FOLDER: u8 = 1;
 struct JsonLayer {
     id: u32,
     #[serde(rename = "type")]
-    layer_type: u8,
+    layer_type: Option<u8>,
     name: String,
     visible: bool,
-    editable: bool,
+    editable: Option<bool>,
     #[serde(rename = "folderId", skip_serializing_if = "Option::is_none")]
     folder_id: Option<FaultyU32>, // -1 if not a folder id
     #[serde(skip_serializing_if = "Option::is_none")]

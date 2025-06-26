@@ -75,10 +75,10 @@ pub fn write(internal: &InternalTrackFormat) -> Result<String, TrackWriteError> 
 
                 layers.push(JsonLayer {
                     id: *id,
-                    layer_type: LAYER_TYPE_LAYER,
+                    layer_type: Some(LAYER_TYPE_LAYER),
                     name: color.to_string() + &name.clone(),
                     visible: *visible,
-                    editable: *editable,
+                    editable: Some(*editable),
                     folder_id: json_folder_id,
                     size: None,
                 });
@@ -92,10 +92,10 @@ pub fn write(internal: &InternalTrackFormat) -> Result<String, TrackWriteError> 
             } => {
                 layers.push(JsonLayer {
                     id: *id,
-                    layer_type: LAYER_TYPE_FOLDER,
+                    layer_type: Some(LAYER_TYPE_FOLDER),
                     name: name.clone(),
                     visible: *visible,
-                    editable: *editable,
+                    editable: Some(*editable),
                     folder_id: None,
                     size: Some(*size),
                 });
