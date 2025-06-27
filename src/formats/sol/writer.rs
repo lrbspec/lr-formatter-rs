@@ -42,7 +42,7 @@ pub fn write(internal: &InternalTrackFormat) -> Result<Vec<u8>, TrackWriteError>
         let ext = if line.left_extension { 1.0 } else { 0.0 }
             + if line.right_extension { 2.0 } else { 0.0 };
         let inv = if line.flipped { 1.0 } else { 0.0 };
-        let numeric_line_type = if line.base_line.line_type == LineType::BLUE {
+        let numeric_line_type = if line.base_line.line_type == LineType::Standard {
             0.0
         } else {
             1.0

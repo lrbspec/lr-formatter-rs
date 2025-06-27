@@ -113,9 +113,9 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
         let flags = cursor.read_u8()?;
 
         let line_type = match flags & 0x1F {
-            1 => LineType::BLUE,
-            2 => LineType::RED,
-            0 => LineType::GREEN,
+            1 => LineType::Standard,
+            2 => LineType::Acceleration,
+            0 => LineType::Scenery,
             other => {
                 return Err(TrackReadError::InvalidData {
                     name: "line type".to_string(),
@@ -133,11 +133,12 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
         let mut line_zoom_target: Option<f32> = None;
         let mut line_zoom_frames: Option<i16> = None;
 
-        if line_type == LineType::RED && included_features.contains(FEATURE_RED_MULTIPLIER) {
+        if line_type == LineType::Acceleration && included_features.contains(FEATURE_RED_MULTIPLIER)
+        {
             line_multiplier = Some(cursor.read_u8()? as f64);
         }
 
-        if line_type == LineType::GREEN {
+        if line_type == LineType::Scenery {
             if included_features.contains(FEATURE_SCENERY_WIDTH) {
                 line_scenery_width = Some(cursor.read_u8()? as f64 / 10.0);
             }
@@ -173,7 +174,7 @@ pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
             line_type,
         };
 
-        if line_type == LineType::GREEN {
+        if line_type == LineType::Scenery {
             internal.scenery_lines.push(SceneryLine {
                 base_line,
                 width: line_scenery_width,

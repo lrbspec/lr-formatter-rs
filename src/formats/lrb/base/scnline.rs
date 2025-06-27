@@ -33,7 +33,7 @@ pub(in crate::formats::lrb) static SCNLINE: Lazy<ModHandler> = Lazy::new(|| ModH
                     y1,
                     x2,
                     y2,
-                    line_type: LineType::GREEN,
+                    line_type: LineType::Scenery,
                 },
                 width: None,
             });

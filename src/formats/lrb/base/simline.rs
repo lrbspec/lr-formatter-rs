@@ -33,9 +33,9 @@ pub(in crate::formats::lrb) static SIMLINE: Lazy<ModHandler> = Lazy::new(|| ModH
             let x2 = cursor.read_f64::<LittleEndian>()?;
             let y2 = cursor.read_f64::<LittleEndian>()?;
             let line_type = if line_flags & FLAG_RED != 0 {
-                LineType::RED
+                LineType::Acceleration
             } else {
-                LineType::BLUE
+                LineType::Standard
             };
             let flipped = line_flags & FLAG_INVERTED != 0;
             let left_extension = line_flags & FLAG_LEFT_EXTENSION != 0;
@@ -63,7 +63,7 @@ pub(in crate::formats::lrb) static SIMLINE: Lazy<ModHandler> = Lazy::new(|| ModH
         cursor.write_u32::<LittleEndian>(internal.simulation_lines.len() as u32)?;
         for simulation_line in &internal.simulation_lines {
             let mut line_flags: u8 = 0;
-            if simulation_line.base_line.line_type == LineType::RED {
+            if simulation_line.base_line.line_type == LineType::Acceleration {
                 line_flags |= FLAG_RED;
             }
             if simulation_line.flipped {

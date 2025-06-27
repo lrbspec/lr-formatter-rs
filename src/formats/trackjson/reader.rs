@@ -29,9 +29,9 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat, TrackReadError> {
     if let Some(line_list) = json_track.lines {
         for line in line_list {
             let line_type = match line.line_type {
-                0 => LineType::BLUE,
-                1 => LineType::RED,
-                2 => LineType::GREEN,
+                0 => LineType::Standard,
+                1 => LineType::Acceleration,
+                2 => LineType::Scenery,
                 other => {
                     return Err(TrackReadError::InvalidData {
                         name: "line type".to_string(),
@@ -91,7 +91,7 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat, TrackReadError> {
                         y1,
                         x2,
                         y2,
-                        line_type: LineType::BLUE,
+                        line_type: LineType::Standard,
                     };
 
                     internal.simulation_lines.push(SimulationLine {
@@ -120,7 +120,7 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat, TrackReadError> {
                         y1,
                         x2,
                         y2,
-                        line_type: LineType::RED,
+                        line_type: LineType::Acceleration,
                     };
 
                     internal.simulation_lines.push(SimulationLine {
@@ -138,7 +138,7 @@ pub fn read(json_str: &str) -> Result<InternalTrackFormat, TrackReadError> {
                         y1,
                         x2,
                         y2,
-                        line_type: LineType::GREEN,
+                        line_type: LineType::Scenery,
                     };
 
                     internal.scenery_lines.push(SceneryLine {

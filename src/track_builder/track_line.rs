@@ -6,9 +6,9 @@ pub use simulation::SimulationLine;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LineType {
-    BLUE = 0,
-    RED = 1,
-    GREEN = 2,
+    Standard = 0,
+    Acceleration = 1,
+    Scenery = 2,
 }
 
 #[derive(Debug, Clone)]

@@ -17,7 +17,7 @@ pub fn write(internal: &InternalTrackFormat) -> Result<String, TrackWriteError> 
     let mut riders = Vec::<JsonRider>::new();
 
     for line in &internal.simulation_lines {
-        let line_type = if line.base_line.line_type == LineType::BLUE {
+        let line_type = if line.base_line.line_type == LineType::Standard {
             0u8
         } else {
             1u8

@@ -327,9 +327,9 @@ pub fn read(data: &[u8], track_index: Option<u32>) -> Result<InternalTrackFormat
                     })?;
 
             let line_type = match line_type_numeric {
-                0.0 => LineType::BLUE,
-                1.0 => LineType::RED,
-                2.0 => LineType::GREEN,
+                0.0 => LineType::Standard,
+                1.0 => LineType::Acceleration,
+                2.0 => LineType::Scenery,
                 other => {
                     return Err(TrackReadError::InvalidData {
                         name: "line type".to_string(),
@@ -347,7 +347,7 @@ pub fn read(data: &[u8], track_index: Option<u32>) -> Result<InternalTrackFormat
                 line_type,
             };
 
-            if line_type == LineType::GREEN {
+            if line_type == LineType::Scenery {
                 internal.scenery_lines.push(SceneryLine {
                     base_line,
                     width: None,
