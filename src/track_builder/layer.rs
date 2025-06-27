@@ -1,4 +1,4 @@
-use crate::internal::rgb_color::RGBColor;
+use crate::track_builder::rgb_color::RGBColor;
 
 // TODO: Refactor this into two separate structs, with an "index" attribute
 #[derive(Debug, Clone)]

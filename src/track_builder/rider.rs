@@ -1,4 +1,4 @@
-use crate::internal::vec2::Vec2;
+use crate::track_builder::vec2::Vec2;
 
 #[derive(Debug, Clone)]
 pub struct Rider {

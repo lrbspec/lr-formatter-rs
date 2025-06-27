@@ -3,9 +3,9 @@ use std::io::{Cursor, Read};
 
 use crate::{
     TrackReadError,
-    formats::{
-        internal::{GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine},
-        sol::amf0::deserialize,
+    formats::sol::amf0::deserialize,
+    track_builder::{
+        GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine,
     },
     util::{StringLength, bytes_to_hex_string, parse_string},
 };

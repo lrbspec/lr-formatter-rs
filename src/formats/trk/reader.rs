@@ -7,15 +7,14 @@ use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::{
     TrackReadError,
-    formats::{
-        internal::{GridVersion, InternalTrackFormat, Line, LineType},
-        trk::{
-            FEATURE_BACKGROUND_COLOR_B, FEATURE_BACKGROUND_COLOR_G, FEATURE_BACKGROUND_COLOR_R,
-            FEATURE_GRAVITY_WELL_SIZE, FEATURE_LINE_COLOR_B, FEATURE_LINE_COLOR_G,
-            FEATURE_START_ZOOM, FEATURE_TRIGGERS, FEATURE_X_GRAVITY, FEATURE_Y_GRAVITY,
-        },
+    formats::trk::{
+        FEATURE_BACKGROUND_COLOR_B, FEATURE_BACKGROUND_COLOR_G, FEATURE_BACKGROUND_COLOR_R,
+        FEATURE_GRAVITY_WELL_SIZE, FEATURE_LINE_COLOR_B, FEATURE_LINE_COLOR_G, FEATURE_START_ZOOM,
+        FEATURE_TRIGGERS, FEATURE_X_GRAVITY, FEATURE_Y_GRAVITY,
     },
-    internal::{Audio, SceneryLine, SimulationLine},
+    track_builder::{
+        Audio, GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine,
+    },
     trk::{FEATURE_FRICTIONLESS, FEATURE_REMOUNT, FEATURE_ZERO_START},
     util::{StringLength, bytes_to_hex_string, parse_string},
 };

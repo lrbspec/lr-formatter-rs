@@ -1,4 +1,4 @@
-use crate::internal::{trigger::FrameReachedEvent, vec2::Vec2};
+use crate::track_builder::{trigger::FrameReachedEvent, vec2::Vec2};
 
 #[derive(Debug, Clone)]
 pub struct State {

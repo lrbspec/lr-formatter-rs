@@ -1,4 +1,4 @@
-//! Format that lr_formatter_rs parses into and out of, exposed for usage after reading and before writing
+//! Utility for building tracks with extreme granularity
 
 mod audio;
 mod grid_version;
@@ -17,12 +17,11 @@ pub use layer::Layer;
 pub use rgb_color::RGBColor;
 pub use rider::Rider;
 pub use track_line::{Line, LineType, SceneryLine, SimulationLine};
-pub use vec2::Vec2;
-
-use crate::internal::trigger::{
+use trigger::{
     background_color, camera_focus, camera_pan, camera_zoom, gravity, layer_color,
     layer_visibility, timeline_speed,
 };
+pub use vec2::Vec2;
 
 /// Malleable struct for storing implementation-agnostic track properties
 #[derive(Debug, Clone)]

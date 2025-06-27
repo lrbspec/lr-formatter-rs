@@ -1,4 +1,4 @@
-use crate::internal::trigger::FrameReachedEvent;
+use crate::track_builder::trigger::FrameReachedEvent;
 
 /// Known in linerider.com as "time remap" triggers, causes the timeline to speed up or slow down by some multiplier
 #[derive(Debug, Clone)]

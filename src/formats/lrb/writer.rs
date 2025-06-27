@@ -1,5 +1,5 @@
 use super::{SUPPORTED_MODS, mod_flags};
-use crate::{TrackWriteError, formats::internal::InternalTrackFormat};
+use crate::{TrackWriteError, track_builder::InternalTrackFormat};
 use byteorder::{LittleEndian, WriteBytesExt};
 use std::{
     collections::HashMap,

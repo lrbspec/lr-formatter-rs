@@ -9,7 +9,7 @@ mod writer;
 pub use reader::read;
 pub use writer::write;
 
-use crate::{TrackReadError, TrackWriteError, formats::internal::InternalTrackFormat};
+use crate::{TrackReadError, TrackWriteError, track_builder::InternalTrackFormat};
 use base::{GRIDVER, LABEL, SCNLINE, SIMLINE, STARTOFFSET};
 use once_cell::sync::Lazy;
 use std::{collections::HashMap, io::Cursor};

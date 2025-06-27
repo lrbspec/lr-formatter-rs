@@ -1,9 +1,7 @@
 use crate::{
     TrackReadError,
-    formats::{
-        internal::GridVersion,
-        lrb::{ModHandler, mod_flags},
-    },
+    formats::lrb::{ModHandler, mod_flags},
+    track_builder::GridVersion,
 };
 use byteorder::{ReadBytesExt, WriteBytesExt};
 use once_cell::sync::Lazy;

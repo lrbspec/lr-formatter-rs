@@ -6,10 +6,8 @@ use std::{
 
 use crate::{
     TrackWriteError,
-    formats::{
-        internal::{GridVersion, InternalTrackFormat, LineType},
-        sol::amf0::{Amf0Value, serialize},
-    },
+    formats::sol::amf0::{Amf0Value, serialize},
+    track_builder::{GridVersion, InternalTrackFormat, LineType},
 };
 
 pub fn write(internal: &InternalTrackFormat) -> Result<Vec<u8>, TrackWriteError> {

@@ -1,11 +1,9 @@
 use super::JsonTrack;
 use crate::{
     TrackReadError,
-    formats::{
-        internal::{
-            GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine, Vec2,
-        },
-        trackjson::LRAJsonArrayLine,
+    formats::trackjson::LRAJsonArrayLine,
+    track_builder::{
+        GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine, Vec2,
     },
 };
 

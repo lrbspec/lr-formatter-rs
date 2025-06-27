@@ -1,7 +1,7 @@
 use super::{SUPPORTED_MODS, mod_flags};
 use crate::{
     TrackReadError,
-    formats::internal::InternalTrackFormat,
+    track_builder::InternalTrackFormat,
     util::{self, StringLength, parse_string},
 };
 use byteorder::{LittleEndian, ReadBytesExt};

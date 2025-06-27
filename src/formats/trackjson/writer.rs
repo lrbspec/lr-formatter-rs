@@ -1,8 +1,7 @@
 use super::{JsonLayer, JsonLine, JsonRider, JsonTrack, V2};
 use crate::{
     TrackWriteError,
-    formats::internal::{GridVersion, InternalTrackFormat, LineType},
-    internal::Layer,
+    track_builder::{GridVersion, InternalTrackFormat, Layer, LineType},
     trackjson::{FaultyU32, LAYER_TYPE_FOLDER, LAYER_TYPE_LAYER},
 };
 
