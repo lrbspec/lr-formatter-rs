@@ -1,4 +1,4 @@
-use crate::track_builder::trigger::{FrameReachedEvent, LintHitEvent};
+use crate::track::trigger::{FrameReachedEvent, LintHitEvent};
 
 #[derive(Debug, Clone)]
 pub struct State {

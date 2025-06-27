@@ -1,4 +1,4 @@
-use crate::track_builder::trigger::FrameReachedEvent;
+use crate::track::trigger::FrameReachedEvent;
 // TODO: Make this per layer
 
 /// Determines the visibility of a layer by cycling it between on and off

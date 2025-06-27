@@ -22,7 +22,7 @@
 
 mod errors;
 mod formats;
-mod track_builder;
+mod track;
 pub(crate) mod util;
 pub use errors::{TrackReadError, TrackWriteError};
 pub use formats::{lrb, sol, trackjson, trk};

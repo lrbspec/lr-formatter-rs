@@ -1,9 +1,8 @@
-use crate::track_builder::trigger::FrameReachedEvent;
+use crate::track::{rgb_color::RGBColor, trigger::FrameReachedEvent};
 
 #[derive(Debug, Clone)]
 pub struct State {
-    /// Amount of weight each rider has on where the camera focuses
-    pub rider_weights: Vec<f64>,
+    pub color: RGBColor,
 }
 
 #[derive(Debug, Clone)]
@@ -15,6 +14,5 @@ pub struct Trigger {
 #[derive(Debug, Clone)]
 pub struct TriggerGroup {
     pub initial_state: State,
-    pub smoothing: u32,
     pub triggers: Vec<Trigger>,
 }

@@ -1,11 +1,11 @@
 use super::{JsonLayer, JsonLine, JsonRider, JsonTrack, V2};
 use crate::{
     TrackWriteError,
-    track_builder::{GridVersion, InternalTrackFormat, Layer, LineType},
+    track::{GridVersion, Layer, LineType, Track},
     trackjson::{FaultyU32, LAYER_TYPE_FOLDER, LAYER_TYPE_LAYER},
 };
 
-pub fn write(internal: &InternalTrackFormat) -> Result<String, TrackWriteError> {
+pub fn write(internal: &Track) -> Result<String, TrackWriteError> {
     let version = match internal.grid_version {
         GridVersion::V6_0 => String::from("6.0"),
         GridVersion::V6_1 => String::from("6.1"),

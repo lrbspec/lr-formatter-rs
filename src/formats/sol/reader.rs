@@ -4,14 +4,12 @@ use std::io::{Cursor, Read};
 use crate::{
     TrackReadError,
     formats::sol::amf0::deserialize,
-    track_builder::{
-        GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine,
-    },
+    track::{GridVersion, Line, LineType, SceneryLine, SimulationLine, Track},
     util::{StringLength, bytes_to_hex_string, parse_string},
 };
 
-pub fn read(data: &[u8], track_index: Option<u32>) -> Result<InternalTrackFormat, TrackReadError> {
-    let mut internal = InternalTrackFormat::new();
+pub fn read(data: &[u8], track_index: Option<u32>) -> Result<Track, TrackReadError> {
+    let mut internal = Track::new();
     let mut cursor = Cursor::new(data);
 
     // Magic number

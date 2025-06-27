@@ -1,14 +1,14 @@
 use super::{SUPPORTED_MODS, mod_flags};
 use crate::{
     TrackReadError,
-    track_builder::InternalTrackFormat,
+    track::Track,
     util::{self, StringLength, parse_string},
 };
 use byteorder::{LittleEndian, ReadBytesExt};
 use std::io::{Cursor, Read, Seek, SeekFrom};
 
-pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
-    let mut internal = InternalTrackFormat::new();
+pub fn read(data: &[u8]) -> Result<Track, TrackReadError> {
+    let mut internal = Track::new();
     let mut cursor = Cursor::new(data);
 
     // Magic number

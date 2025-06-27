@@ -2,13 +2,11 @@ use super::JsonTrack;
 use crate::{
     TrackReadError,
     formats::trackjson::LRAJsonArrayLine,
-    track_builder::{
-        GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine, Vec2,
-    },
+    track::{GridVersion, Line, LineType, SceneryLine, SimulationLine, Track, Vec2},
 };
 
-pub fn read(json_str: &str) -> Result<InternalTrackFormat, TrackReadError> {
-    let mut internal = InternalTrackFormat::new();
+pub fn read(json_str: &str) -> Result<Track, TrackReadError> {
+    let mut internal = Track::new();
     let json_track: JsonTrack =
         serde_json::from_str(json_str).map_err(|err| TrackReadError::Other {
             message: format!("Failed to deserialize json track: {}", err),

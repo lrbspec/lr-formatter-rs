@@ -1,4 +1,4 @@
-use crate::track_builder::track_line::Line;
+use crate::track::Line;
 
 #[derive(Debug, Clone)]
 pub struct SimulationLine {

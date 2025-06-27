@@ -7,10 +7,10 @@ use std::{
 use crate::{
     TrackWriteError,
     formats::sol::amf0::{Amf0Value, serialize},
-    track_builder::{GridVersion, InternalTrackFormat, LineType},
+    track::{GridVersion, LineType, Track},
 };
 
-pub fn write(internal: &InternalTrackFormat) -> Result<Vec<u8>, TrackWriteError> {
+pub fn write(internal: &Track) -> Result<Vec<u8>, TrackWriteError> {
     let mut cursor = Cursor::new(Vec::new());
 
     cursor.write_all(b"\x00\xBF")?;

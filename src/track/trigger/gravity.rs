@@ -1,4 +1,4 @@
-use crate::track_builder::{trigger::FrameReachedEvent, vec2::Vec2};
+use crate::track::{trigger::FrameReachedEvent, vec2::Vec2};
 // TODO: Make this per rider
 
 // TODO: LRO writes gravity as (0, 1) and scales internally, whereas .com writes gravity as (0, 0.175) and doesn't scale

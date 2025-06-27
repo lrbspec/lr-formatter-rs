@@ -12,9 +12,7 @@ use crate::{
         FEATURE_GRAVITY_WELL_SIZE, FEATURE_LINE_COLOR_B, FEATURE_LINE_COLOR_G, FEATURE_START_ZOOM,
         FEATURE_TRIGGERS, FEATURE_X_GRAVITY, FEATURE_Y_GRAVITY,
     },
-    track_builder::{
-        Audio, GridVersion, InternalTrackFormat, Line, LineType, SceneryLine, SimulationLine,
-    },
+    track::{Audio, GridVersion, Line, LineType, SceneryLine, SimulationLine, Track},
     trk::{FEATURE_FRICTIONLESS, FEATURE_REMOUNT, FEATURE_ZERO_START},
     util::{StringLength, bytes_to_hex_string, parse_string},
 };
@@ -24,8 +22,8 @@ use super::{
     FEATURE_SCENERY_WIDTH, FEATURE_SONG_INFO,
 };
 
-pub fn read(data: &[u8]) -> Result<InternalTrackFormat, TrackReadError> {
-    let mut internal = InternalTrackFormat::new();
+pub fn read(data: &[u8]) -> Result<Track, TrackReadError> {
+    let mut internal = Track::new();
     let mut cursor = Cursor::new(data);
 
     // Magic number

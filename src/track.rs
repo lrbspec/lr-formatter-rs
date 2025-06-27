@@ -3,9 +3,9 @@
 mod audio;
 mod grid_version;
 mod layer;
+mod line;
 mod rgb_color;
 mod rider;
-mod track_line;
 mod trigger;
 mod vec2;
 
@@ -14,9 +14,9 @@ use std::vec;
 pub use audio::Audio;
 pub use grid_version::GridVersion;
 pub use layer::Layer;
+pub use line::{Line, LineType, SceneryLine, SimulationLine};
 pub use rgb_color::RGBColor;
 pub use rider::Rider;
-pub use track_line::{Line, LineType, SceneryLine, SimulationLine};
 use trigger::{
     background_color, camera_focus, camera_pan, camera_zoom, gravity, layer_color,
     layer_visibility, timeline_speed,
@@ -25,7 +25,7 @@ pub use vec2::Vec2;
 
 /// Malleable struct for storing implementation-agnostic track properties
 #[derive(Debug, Clone)]
-pub struct InternalTrackFormat {
+pub struct Track {
     pub grid_version: GridVersion,
     pub title: String,
     pub artist: String,
@@ -52,13 +52,13 @@ pub struct InternalTrackFormat {
     pub background_color_triggers: background_color::TriggerGroup,
 }
 
-impl Default for InternalTrackFormat {
+impl Default for Track {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl InternalTrackFormat {
+impl Track {
     /// Creates a new `InternalTrackFormat` with recommended defaults
     pub fn new() -> Self {
         Self {

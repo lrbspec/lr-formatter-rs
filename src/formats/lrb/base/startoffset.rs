@@ -1,6 +1,6 @@
 use crate::{
     formats::lrb::{ModHandler, mod_flags},
-    track_builder::Vec2,
+    track::Vec2,
 };
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use once_cell::sync::Lazy;
