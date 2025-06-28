@@ -4,25 +4,13 @@ mod grid_version;
 mod rgb_color;
 mod vec2;
 
-use attribute_flatten_struct::flatten_struct;
 use derive_builder::Builder;
 pub use grid_version::GridVersion;
 pub use rgb_color::RGBColor;
 pub use vec2::Vec2;
 
-// The procedural macro `flatten_struct` is used here to flatten a bunch of structs into
-// the parent struct, wrapped with Vec<>, then apply the derive_builder crate macros (which wraps
-// the flattened props with Option<> for the builder pattern).
-
-// This was done to self-document some of the natural groupings of certain objects (Riders, Layers,
-// Lines, etc) without flattening them all into the builder struct directly, and keep consistency
-// among prefixed file names so it's not as easy to make a mistake.
-
-#[flatten_struct]
-// These are injected by #[flatten_struct], because we need to do these *after* flattening:
-//   #[derive(Builder)]
-//   #[builder(private, build_fn(validate = "Self::validate"))]
-#[derive(Debug)]
+#[derive(Builder, Debug)]
+#[builder(private, build_fn(validate = "Self::validate"))]
 struct BTrack {
     // Shared Properties
     grid_version: GridVersion,
@@ -52,11 +40,8 @@ struct BTrack {
     gravity_well_size: Option<f64>,
     #[builder(default)]
     zero_start: bool,
-    #[flatten(struct Audio2 {
-      filename: String,
-      offset_until_start: f64,
-    })]
-    audio: Audio2,
+    audio_filename: Option<String>,
+    audio_offset_until_start: Option<f64>,
     initial_line_color: Option<RGBColor>,
     initial_background_color: Option<RGBColor>,
     initial_gravity_strength: Option<Vec2>,
@@ -67,42 +52,34 @@ struct BTrack {
     start_line: Option<u32>,
 
     // Riders
-    #[flatten(struct Rider2 {
-        id: u32,
-        position: Vec2,
-        index: u32,
-        velocity: Vec2,
-        angle: f64,
-        can_remount: bool
-    })]
-    rider: Vec<Rider2>,
+    rider_count: Option<u32>,
+    rider_id: Option<Vec<u32>>,
+    rider_position: Option<Vec<Vec2>>,
+    rider_index: Option<Vec<u32>>,
+    rider_velocity: Option<Vec<Vec2>>,
+    rider_angle: Option<Vec<f64>>,
+    rider_can_remount: Option<Vec<bool>>,
 
     // Layers
-    #[flatten(struct Layer2 {
-      id: u32,
-      index: u32,
-      name: String,
-      editable: bool,
-      visible: bool,
-      color: RGBColor,
-      is_folder: bool,
-      folder_size: Option<u32>,
-      parent_folder: Option<u32>,
-    })]
-    layer: Vec<Layer2>,
+    layer_id: Option<u32>,
+    layer_index: Option<Vec<u32>>,
+    layer_name: Option<Vec<String>>,
+    layer_editable: Option<Vec<bool>>,
+    layer_visible: Option<Vec<bool>>,
+    layer_color: Option<Vec<RGBColor>>,
+    layer_is_folder: Option<Vec<bool>>,
+    layer_folder_size: Option<Vec<Option<u32>>>,
+    layer_parent_folder: Option<Vec<Option<u32>>>,
 
     // Lines
-    #[flatten(struct Line2 {
-      id: u32,
-      endpoints: (Vec2, Vec2),
-      is_scenery: bool,
-      scenery_line_width: f64,
-      scenery_line_width_f32: f32,
-      simulation_line_flags: u8,
-      simulation_line_multiplier: f64
-    })]
-    line: Vec<Line2>,
-    // TODO: Triggers
+    line_count: Option<u32>,
+    line_id: Option<Vec<u32>>,
+    line_endpoints: Option<Vec<(Vec2, Vec2)>>,
+    line_is_scenery: Option<Vec<bool>>,
+    line_scenery_line_width: Option<Vec<f64>>,
+    line_scenery_line_width_f32: Option<Vec<f32>>,
+    line_simulation_line_flags: Option<Vec<u8>>,
+    line_simulation_line_multiplier: Option<Vec<f64>>, // TODO: Triggers
 }
 
 impl BTrackBuilder {

@@ -3,15 +3,6 @@
 version = 4
 
 [[package]]
-name = "attribute_flatten_struct"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "byteorder"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -105,7 +96,6 @@ checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
 name = "lr_formatter_rs"
 version = "0.1.0"
 dependencies = [
- "attribute_flatten_struct",
  "byteorder",
  "derive_builder",
  "once_cell",
