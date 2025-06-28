@@ -1,5 +1,6 @@
 //! <https://github.com/KallDrexx/rust-media-libs>
 //! License: See ./LICENSE-APACHE and ./LICENSE-MIT
+//! Modifications Copyright 2025 LRBSpec
 
 mod deserialization;
 mod errors;
