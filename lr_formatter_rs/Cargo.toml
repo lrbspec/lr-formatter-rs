@@ -11,6 +11,7 @@ byteorder = "1.0"
 once_cell = "1.21.3"
 thiserror = "1.0"
 derive_builder = "0.20.2"
+attribute_flatten_struct = { path = "../attribute_flatten_struct" }
 
 [lib]
 name = "lr_formatter_rs"
