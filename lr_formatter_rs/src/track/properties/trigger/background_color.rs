@@ -1,7 +1,5 @@
-use crate::track::{RGBColor, props::trigger::FrameReachedEvent};
-// TODO: Make this per layer
+use crate::track::{properties::trigger::FrameReachedEvent, rgb_color::RGBColor};
 
-// TODO: This is intended for LRO color triggers acting on the base layer
 #[derive(Debug, Clone)]
 pub struct State {
     pub color: RGBColor,

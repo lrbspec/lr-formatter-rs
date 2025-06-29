@@ -20,9 +20,8 @@
 //! // File::create("test_track.lrb").unwrap().write_all(&track_lrb_bytes).unwrap()
 //! ```
 
-mod errors;
 mod formats;
 mod track;
 pub(crate) mod util;
-pub use errors::{TrackReadError, TrackWriteError};
-pub use formats::{lrb, sol, trackjson, trk};
+pub use formats::{TrackReadError, TrackWriteError, lrb, sol, trackjson, trk};
+pub use track::{Track, TrackBuilder, TrackBuilderError, TrackFeature};

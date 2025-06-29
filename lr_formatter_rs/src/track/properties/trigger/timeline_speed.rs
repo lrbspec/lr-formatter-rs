@@ -1,10 +1,9 @@
-use crate::track::{Vec2, props::trigger::FrameReachedEvent};
-// TODO: Make this per rider
+use crate::track::properties::trigger::FrameReachedEvent;
 
-// TODO: LRO writes gravity as (0, 1) and scales internally, whereas .com writes gravity as (0, 0.175) and doesn't scale
+/// Known in linerider.com as "time remap" triggers, causes the timeline to speed up or slow down by some multiplier
 #[derive(Debug, Clone)]
 pub struct State {
-    pub strength: Vec2,
+    pub speed_multiplier: f64,
 }
 
 #[derive(Debug, Clone)]
@@ -16,5 +15,6 @@ pub struct Trigger {
 #[derive(Debug, Clone)]
 pub struct TriggerGroup {
     pub initial_state: State,
+    pub interpolate_speeds: bool,
     pub triggers: Vec<Trigger>,
 }
