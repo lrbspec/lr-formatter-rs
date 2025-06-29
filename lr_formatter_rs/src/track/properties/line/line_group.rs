@@ -30,7 +30,7 @@ pub struct LineGroup {
     scenery_lines: Vec<SceneryLine>,
 }
 
-pub struct LineGroupBuilder {
+pub(in crate::track) struct LineGroupBuilder {
     features: Vec<LineFeature>,
     standard_lines: Vec<StandardLineBuilder>,
     acceleration_lines: Vec<AccelerationLineBuilder>,

@@ -1,18 +1,24 @@
-pub mod properties;
-pub mod rgb_color;
-pub mod vec2;
+mod grid_version;
+mod properties;
+mod rgb_color;
+mod vec2;
 
 use derive_more::Display;
 use thiserror::Error;
 
-use crate::track::{
-    properties::{
-        layer::layer_group::{LayerGroup, LayerGroupBuilder, LayerGroupBuilderError},
-        line::line_group::{LineGroup, LineGroupBuilder, LineGroupBuilderError},
-        metadata::{Metadata, MetadataBuilder, MetadataBuilderError},
-        rider::rider_group::{RiderGroup, RiderGroupBuilder, RiderGroupBuilderError},
-    },
-    vec2::Vec2,
+pub use grid_version::GridVersion;
+pub use properties::{
+    AccelerationLine, AccelerationLineBuilderError, Layer, LayerBuilderError, LayerFeature,
+    LayerFolder, LayerFolderBuilderError, LayerGroup, LayerGroupBuilderError, LineFeature,
+    LineGroup, LineGroupBuilderError, Metadata, MetadataBuilderError, Rider, RiderBuilderError,
+    RiderFeature, RiderGroup, RiderGroupBuilderError, SceneryLine, SceneryLineBuilderError,
+    StandardLine, StandardLineBuilderError,
+};
+pub use rgb_color::RGBColor;
+pub use vec2::Vec2;
+
+use crate::track::properties::{
+    LayerGroupBuilder, LineGroupBuilder, MetadataBuilder, RiderGroupBuilder,
 };
 
 #[derive(Debug, Display, PartialEq)]

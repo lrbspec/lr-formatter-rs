@@ -16,7 +16,7 @@ pub struct RiderGroup {
     riders: Vec<Rider>,
 }
 
-pub struct RiderGroupBuilder {
+pub(in crate::track) struct RiderGroupBuilder {
     features: Vec<RiderFeature>,
     riders: Vec<RiderBuilder>,
 }

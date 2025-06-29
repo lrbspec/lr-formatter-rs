@@ -23,7 +23,7 @@ pub struct LayerGroup {
     layer_folders: Option<Vec<LayerFolder>>,
 }
 
-pub struct LayerGroupBuilder {
+pub(in crate::track) struct LayerGroupBuilder {
     features: Vec<LayerFeature>,
     layers: Vec<LayerBuilder>,
     layer_folders: Option<Vec<LayerFolderBuilder>>,

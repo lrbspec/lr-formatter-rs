@@ -1,4 +1,4 @@
-use crate::track::{properties::trigger::FrameReachedEvent, rgb_color::RGBColor};
+use crate::track::{RGBColor, properties::trigger::FrameReachedEvent};
 
 #[derive(Debug, Clone)]
 pub struct State {

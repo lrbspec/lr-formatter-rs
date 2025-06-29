@@ -4,7 +4,17 @@ mod metadata;
 mod rider;
 mod trigger;
 
-pub use layer::{Layer, LayerFeature, LayerFolder, LayerGroup};
-pub use line::{AccelerationLine, LineFeature, LineGroup, SceneryLine, StandardLine};
-pub use metadata::Metadata;
-pub use rider::{Rider, RiderFeature, RiderGroup};
+pub(in crate::track) use layer::LayerGroupBuilder;
+pub use layer::{
+    Layer, LayerBuilderError, LayerFeature, LayerFolder, LayerFolderBuilderError, LayerGroup,
+    LayerGroupBuilderError,
+};
+pub(in crate::track) use line::LineGroupBuilder;
+pub use line::{
+    AccelerationLine, AccelerationLineBuilderError, LineFeature, LineGroup, LineGroupBuilderError,
+    SceneryLine, SceneryLineBuilderError, StandardLine, StandardLineBuilderError,
+};
+pub(in crate::track) use metadata::MetadataBuilder;
+pub use metadata::{Metadata, MetadataBuilderError};
+pub(in crate::track) use rider::RiderGroupBuilder;
+pub use rider::{Rider, RiderBuilderError, RiderFeature, RiderGroup, RiderGroupBuilderError};

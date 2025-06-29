@@ -1,7 +1,7 @@
 use derive_builder::Builder;
 use getset::Getters;
 
-use crate::track::vec2::Vec2;
+use crate::track::{GridVersion, Vec2};
 
 #[derive(Getters, Debug, Builder)]
 pub struct Metadata {

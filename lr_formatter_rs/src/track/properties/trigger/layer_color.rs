@@ -1,6 +1,6 @@
 // TODO: Make this per layer
 
-use crate::track::{properties::trigger::FrameReachedEvent, rgb_color::RGBColor};
+use crate::track::{RGBColor, properties::trigger::FrameReachedEvent};
 
 // TODO: This is intended for LRO color triggers acting on the base layer
 #[derive(Debug, Clone)]
