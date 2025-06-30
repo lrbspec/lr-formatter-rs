@@ -22,35 +22,40 @@ use crate::track::properties::{
 };
 
 #[derive(Debug, Display, PartialEq)]
-pub enum TrackFeature {}
+pub enum TrackFeature {
+    Riders,
+    Layers,
+}
 
 #[derive(Debug)]
 pub struct Track {
+    metadata: Metadata,
     line_group: LineGroup,
     layer_group: Option<LayerGroup>,
     rider_group: Option<RiderGroup>,
-    metadata: Option<Metadata>,
 }
 
 pub struct TrackBuilder {
     features: Vec<TrackFeature>,
     line_group: LineGroupBuilder,
+    metadata: MetadataBuilder,
     layer_group: Option<LayerGroupBuilder>,
     rider_group: Option<RiderGroupBuilder>,
-    metadata: Option<MetadataBuilder>,
+}
+
+impl Default for TrackBuilder {
+    fn default() -> Self {
+        Self {
+            features: vec![],
+            line_group: LineGroupBuilder::default(),
+            metadata: MetadataBuilder::default(),
+            layer_group: None,
+            rider_group: None,
+        }
+    }
 }
 
 impl TrackBuilder {
-    pub fn new() -> Self {
-        Self {
-            features: vec![],
-            line_group: LineGroupBuilder::new(),
-            layer_group: None,
-            rider_group: None,
-            metadata: None,
-        }
-    }
-
     pub fn enable_feature(mut self, feature: TrackFeature) -> Self {
         self.features.push(feature);
         self
@@ -76,8 +81,11 @@ impl TrackBuilder {
     // TODO methods
 
     pub fn build(self) -> Result<Track, TrackBuilderError> {
-        let metadata = match self.metadata.as_ref() {
-            Some(metadata_builder) => Some(metadata_builder.build()?),
+        let metadata = self.metadata.build()?;
+        let line_group = self.line_group.build()?;
+
+        let layer_group = match self.layer_group.as_ref() {
+            Some(layer_group_builder) => Some(layer_group_builder.build()?),
             None => None,
         };
 
@@ -86,17 +94,10 @@ impl TrackBuilder {
             None => None,
         };
 
-        let layer_group = match self.layer_group.as_ref() {
-            Some(layer_group_builder) => Some(layer_group_builder.build()?),
-            None => None,
-        };
-
-        let line_group = self.line_group.build()?;
-
         Ok(Track {
             metadata,
-            layer_group,
             line_group,
+            layer_group,
             rider_group,
         })
     }

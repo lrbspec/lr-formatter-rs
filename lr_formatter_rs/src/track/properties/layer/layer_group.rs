@@ -29,15 +29,17 @@ pub(in crate::track) struct LayerGroupBuilder {
     layer_folders: Option<Vec<LayerFolderBuilder>>,
 }
 
-impl LayerGroupBuilder {
-    pub fn new() -> Self {
+impl Default for LayerGroupBuilder {
+    fn default() -> Self {
         Self {
             features: vec![],
             layers: vec![],
             layer_folders: None,
         }
     }
+}
 
+impl LayerGroupBuilder {
     pub fn enable_feature(mut self, feature: LayerFeature) -> Self {
         if feature == LayerFeature::Folders {
             self.layer_folders = Some(vec![]);

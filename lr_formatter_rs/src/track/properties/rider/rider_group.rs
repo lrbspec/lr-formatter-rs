@@ -21,14 +21,16 @@ pub(in crate::track) struct RiderGroupBuilder {
     riders: Vec<RiderBuilder>,
 }
 
-impl RiderGroupBuilder {
-    pub fn new() -> Self {
+impl Default for RiderGroupBuilder {
+    fn default() -> Self {
         Self {
             features: vec![],
             riders: vec![],
         }
     }
+}
 
+impl RiderGroupBuilder {
     pub fn enable_feature(mut self, feature: RiderFeature) -> Self {
         self.features.push(feature);
         self
@@ -56,7 +58,7 @@ impl RiderGroupBuilder {
         Ok(self)
     }
 
-    // TODO rider modification methods
+    // TODO methods
 
     pub fn build(&self) -> Result<RiderGroup, RiderGroupBuilderError> {
         let mut riders: Vec<Rider> = vec![];

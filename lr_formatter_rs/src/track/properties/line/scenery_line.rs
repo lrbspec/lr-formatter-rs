@@ -5,6 +5,8 @@ use crate::track::{
 use derive_builder::Builder;
 use getset::Getters;
 
+// TODO make mod for f32 vecs
+
 #[derive(Getters, Debug, Builder)]
 #[getset(get = "pub")]
 pub struct SceneryLine {

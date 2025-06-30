@@ -37,8 +37,8 @@ pub(in crate::track) struct LineGroupBuilder {
     scenery_lines: Vec<SceneryLineBuilder>,
 }
 
-impl LineGroupBuilder {
-    pub fn new() -> Self {
+impl Default for LineGroupBuilder {
+    fn default() -> Self {
         Self {
             features: vec![],
             standard_lines: vec![],
@@ -46,7 +46,9 @@ impl LineGroupBuilder {
             scenery_lines: vec![],
         }
     }
+}
 
+impl LineGroupBuilder {
     pub fn enable_feature(mut self, feature: LineFeature) -> Self {
         self.features.push(feature);
         self

@@ -31,19 +31,19 @@ pub struct Metadata {
 
     // LRA+ Properties
     #[getset(get = "pub")]
-    #[builder(setter(into, strip_option), default)]
+    #[builder(default)]
     use_legacy_remount: bool,
     #[getset(get = "pub")]
-    #[builder(setter(into, strip_option), default)]
+    #[builder(default)]
     use_legacy_fakie: bool,
     #[getset(get = "pub")]
-    #[builder(setter(into, strip_option), default)]
+    #[builder(default)]
     zero_friction_riders: bool,
     #[getset(get = "pub")]
     #[builder(setter(into, strip_option), default)]
     gravity_well_size: Option<f64>,
     #[getset(get = "pub")]
-    #[builder(setter(into, strip_option), default)]
+    #[builder(default)]
     zero_start: bool,
     #[getset(get = "pub")]
     #[builder(setter(into, strip_option), default)]
