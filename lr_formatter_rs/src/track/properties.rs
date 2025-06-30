@@ -4,17 +4,17 @@ mod metadata;
 mod rider;
 mod trigger;
 
-pub(in crate::track) use layer::LayerGroupBuilder;
 pub use layer::{
-    Layer, LayerBuilderError, LayerFeature, LayerFolder, LayerFolderBuilderError, LayerGroup,
-    LayerGroupBuilderError,
+    Layer, LayerBuilder, LayerBuilderError, LayerFeature, LayerFolder, LayerFolderBuilder,
+    LayerFolderBuilderError, LayerGroup, LayerGroupBuilder, LayerGroupBuilderError,
 };
-pub(in crate::track) use line::LineGroupBuilder;
 pub use line::{
-    AccelerationLine, AccelerationLineBuilderError, LineFeature, LineGroup, LineGroupBuilderError,
-    SceneryLine, SceneryLineBuilderError, StandardLine, StandardLineBuilderError,
+    AccelerationLine, AccelerationLineBuilder, AccelerationLineBuilderError, LineFeature,
+    LineGroup, LineGroupBuilder, LineGroupBuilderError, SceneryLine, SceneryLineBuilder,
+    SceneryLineBuilderError, StandardLine, StandardLineBuilder, StandardLineBuilderError,
 };
-pub(in crate::track) use metadata::MetadataBuilder;
-pub use metadata::{Metadata, MetadataBuilderError};
-pub(in crate::track) use rider::RiderGroupBuilder;
-pub use rider::{Rider, RiderBuilderError, RiderFeature, RiderGroup, RiderGroupBuilderError};
+pub use metadata::{Metadata, MetadataBuilder, MetadataBuilderError};
+pub use rider::{
+    Rider, RiderBuilder, RiderBuilderError, RiderFeature, RiderGroup, RiderGroupBuilder,
+    RiderGroupBuilderError,
+};

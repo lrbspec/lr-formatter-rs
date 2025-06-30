@@ -3,11 +3,12 @@ mod line_group;
 mod scenery_line;
 mod standard_line;
 
-pub use acceleration_line::{AccelerationLine, AccelerationLineBuilderError};
-pub(in crate::track) use line_group::LineGroupBuilder;
-pub use line_group::{LineFeature, LineGroup, LineGroupBuilderError};
-pub use scenery_line::{SceneryLine, SceneryLineBuilderError};
-pub use standard_line::{StandardLine, StandardLineBuilderError};
+pub use acceleration_line::{
+    AccelerationLine, AccelerationLineBuilder, AccelerationLineBuilderError,
+};
+pub use line_group::{LineFeature, LineGroup, LineGroupBuilder, LineGroupBuilderError};
+pub use scenery_line::{SceneryLine, SceneryLineBuilder, SceneryLineBuilderError};
+pub use standard_line::{StandardLine, StandardLineBuilder, StandardLineBuilderError};
 
 pub trait GetEndpoints {
     fn x1(&self) -> f64;

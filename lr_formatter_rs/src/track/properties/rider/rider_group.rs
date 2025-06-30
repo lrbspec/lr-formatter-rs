@@ -1,39 +1,69 @@
+use std::collections::HashSet;
+
 use derive_more::Display;
 use getset::Getters;
 use thiserror::Error;
 
-use crate::track::properties::rider::rider_base::{Rider, RiderBuilder, RiderBuilderError};
+use crate::track::{
+    FeatureFieldAccess, UNREACHABLE_MESSAGE,
+    properties::rider::rider_base::{Rider, RiderBuilder, RiderBuilderError},
+};
 
-#[derive(Debug, Display, PartialEq)]
+#[derive(Debug, Display, PartialEq, Eq, Hash)]
 pub enum RiderFeature {
     StartAngle,
     Remount,
 }
 
 #[derive(Debug, Getters)]
+#[getset(get = "pub")]
 pub struct RiderGroup {
-    #[getset(get = "pub")]
     riders: Vec<Rider>,
 }
 
-pub(in crate::track) struct RiderGroupBuilder {
-    features: Vec<RiderFeature>,
+pub struct RiderGroupBuilder {
+    features: HashSet<RiderFeature>,
     riders: Vec<RiderBuilder>,
 }
 
 impl Default for RiderGroupBuilder {
     fn default() -> Self {
         Self {
-            features: vec![],
+            features: HashSet::new(),
             riders: vec![],
         }
     }
 }
 
-impl RiderGroupBuilder {
-    pub fn enable_feature(mut self, feature: RiderFeature) -> Self {
-        self.features.push(feature);
-        self
+impl FeatureFieldAccess<RiderFeature, RiderGroupBuilderError> for RiderGroupBuilder {
+    fn require_feature<'a, T>(
+        &self,
+        field: &'a Option<T>,
+        feature: RiderFeature,
+    ) -> Result<&'a T, RiderGroupBuilderError> {
+        if !self.features.contains(&feature) {
+            return Err(RiderGroupBuilderError::MissingFeatureFlag(feature));
+        }
+
+        match field.as_ref() {
+            Some(some_field) => Ok(some_field),
+            None => unreachable!("{}", UNREACHABLE_MESSAGE),
+        }
+    }
+
+    fn require_feature_mut<'a, T>(
+        current_features: &HashSet<RiderFeature>,
+        field: &'a mut Option<T>,
+        feature: RiderFeature,
+    ) -> Result<&'a mut T, RiderGroupBuilderError> {
+        if !current_features.contains(&feature) {
+            return Err(RiderGroupBuilderError::MissingFeatureFlag(feature));
+        }
+
+        match field.as_mut() {
+            Some(some_field) => Ok(some_field),
+            None => unreachable!("{}", UNREACHABLE_MESSAGE),
+        }
     }
 
     fn check_feature<T>(
@@ -52,13 +82,22 @@ impl RiderGroupBuilder {
 
         Ok(())
     }
+}
 
-    pub fn add_rider(mut self) -> Result<Self, RiderGroupBuilderError> {
-        self.riders.push(RiderBuilder::default().to_owned());
-        Ok(self)
+impl RiderGroupBuilder {
+    pub fn enable_feature(mut self, feature: RiderFeature) -> Self {
+        self.features.insert(feature);
+        self
     }
 
-    // TODO methods
+    pub fn add_rider(mut self) -> Self {
+        self.riders.push(RiderBuilder::default().to_owned());
+        self
+    }
+
+    pub fn get_rider(&self, index: usize) -> Option<&RiderBuilder> {
+        self.riders.get(index)
+    }
 
     pub fn build(&self) -> Result<RiderGroup, RiderGroupBuilderError> {
         let mut riders: Vec<Rider> = vec![];
