@@ -2,4 +2,4 @@
 
 cd lr_formatter_rs
 
-cargo doc --no-deps
+cargo doc --no-deps --open
