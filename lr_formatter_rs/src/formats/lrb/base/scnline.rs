@@ -1,6 +1,6 @@
 use crate::{
     formats::lrb::{ModHandler, mod_flags},
-    track::{Line, LineType, SceneryLine},
+    track::Vec2,
 };
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use once_cell::sync::Lazy;
@@ -16,7 +16,7 @@ use once_cell::sync::Lazy;
 
 pub(in crate::formats::lrb) static SCNLINE: Lazy<ModHandler> = Lazy::new(|| ModHandler {
     flags: mod_flags::EXTRA_DATA | mod_flags::SCENERY,
-    read: Box::new(|cursor, internal| {
+    read: Box::new(|cursor, track_builder| {
         let num_lines = cursor.read_u32::<LittleEndian>()?;
 
         for _ in 0..num_lines {
@@ -25,30 +25,21 @@ pub(in crate::formats::lrb) static SCNLINE: Lazy<ModHandler> = Lazy::new(|| ModH
             let y1 = cursor.read_f64::<LittleEndian>()?;
             let x2 = cursor.read_f64::<LittleEndian>()?;
             let y2 = cursor.read_f64::<LittleEndian>()?;
+            let endpoints = (Vec2 { x: x1, y: y1 }, Vec2 { x: x2, y: y2 });
 
-            internal.scenery_lines.push(SceneryLine {
-                base_line: Line {
-                    id,
-                    x1,
-                    y1,
-                    x2,
-                    y2,
-                    line_type: LineType::Scenery,
-                },
-                width: None,
-            });
+            track_builder.line_group().add_scenery_line(id, endpoints)?;
         }
 
         Ok(())
     }),
-    write: Box::new(|cursor, internal| {
-        cursor.write_u32::<LittleEndian>(internal.scenery_lines.len() as u32)?;
-        for scenery_line in &internal.scenery_lines {
-            cursor.write_u32::<LittleEndian>(scenery_line.base_line.id)?;
-            cursor.write_f64::<LittleEndian>(scenery_line.base_line.x1)?;
-            cursor.write_f64::<LittleEndian>(scenery_line.base_line.y1)?;
-            cursor.write_f64::<LittleEndian>(scenery_line.base_line.x2)?;
-            cursor.write_f64::<LittleEndian>(scenery_line.base_line.y2)?;
+    write: Box::new(|cursor, track| {
+        cursor.write_u32::<LittleEndian>(track.line_group().scenery_lines().len() as u32)?;
+        for scenery_line in track.line_group().scenery_lines() {
+            cursor.write_u32::<LittleEndian>(scenery_line.id())?;
+            cursor.write_f64::<LittleEndian>(scenery_line.x1())?;
+            cursor.write_f64::<LittleEndian>(scenery_line.y1())?;
+            cursor.write_f64::<LittleEndian>(scenery_line.x2())?;
+            cursor.write_f64::<LittleEndian>(scenery_line.y2())?;
         }
 
         Ok(())

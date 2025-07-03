@@ -51,21 +51,6 @@ impl Default for LineGroupBuilder {
 
 impl FeatureFieldAccess<LineFeature, LineGroupBuilderError> for LineGroupBuilder {
     fn require_feature<'a, T>(
-        &self,
-        field: &'a Option<T>,
-        feature: LineFeature,
-    ) -> Result<&'a T, LineGroupBuilderError> {
-        if !self.features.contains(&feature) {
-            return Err(LineGroupBuilderError::MissingFeatureFlag(feature));
-        }
-
-        match field.as_ref() {
-            Some(some_field) => Ok(some_field),
-            None => unreachable!("{}", UNREACHABLE_MESSAGE),
-        }
-    }
-
-    fn require_feature_mut<'a, T>(
         current_features: &HashSet<LineFeature>,
         field: &'a mut Option<T>,
         feature: LineFeature,
@@ -99,81 +84,81 @@ impl FeatureFieldAccess<LineFeature, LineGroupBuilderError> for LineGroupBuilder
 }
 
 impl LineGroupBuilder {
-    pub fn enable_feature(mut self, feature: LineFeature) -> Self {
+    pub fn enable_feature(&mut self, feature: LineFeature) -> &mut Self {
         self.features.insert(feature);
         self
     }
 
     pub fn add_standard_line(
-        mut self,
+        &mut self,
         id: u32,
-        end_points: (Vec2, Vec2),
+        endpoints: (Vec2, Vec2),
         flipped: bool,
         left_extension: bool,
         right_extension: bool,
-    ) -> Result<Self, LineGroupBuilderError> {
+    ) -> Result<&mut StandardLineBuilder, LineGroupBuilderError> {
         self.standard_lines.push(
             StandardLineBuilder::default()
                 .id(id)
-                .endpoints(end_points)
+                .endpoints(endpoints)
                 .flipped(flipped)
                 .left_extension(left_extension)
                 .right_extension(right_extension)
                 .to_owned(),
         );
 
-        Ok(self)
+        Ok(self.standard_lines.last_mut().unwrap())
     }
 
-    pub fn get_standard_line(&self, index: usize) -> Option<&StandardLineBuilder> {
-        self.standard_lines.get(index)
+    pub fn get_standard_lines(&mut self) -> impl Iterator<Item = &mut StandardLineBuilder> {
+        self.standard_lines.iter_mut()
     }
 
     pub fn add_acceleration_line(
-        mut self,
+        &mut self,
         id: u32,
-        end_points: (Vec2, Vec2),
+        endpoints: (Vec2, Vec2),
         flipped: bool,
         left_extension: bool,
         right_extension: bool,
-    ) -> Result<Self, LineGroupBuilderError> {
+    ) -> Result<&mut AccelerationLineBuilder, LineGroupBuilderError> {
         self.acceleration_lines.push(
             AccelerationLineBuilder::default()
                 .id(id)
-                .endpoints(end_points)
+                .endpoints(endpoints)
                 .flipped(flipped)
                 .left_extension(left_extension)
                 .right_extension(right_extension)
                 .to_owned(),
         );
 
-        Ok(self)
+        Ok(self.acceleration_lines.last_mut().unwrap())
     }
 
-    pub fn get_acceleration_line(&self, index: usize) -> Option<&AccelerationLineBuilder> {
-        self.acceleration_lines.get(index)
+    pub fn get_acceleration_lines(&mut self) -> impl Iterator<Item = &mut AccelerationLineBuilder> {
+        self.acceleration_lines.iter_mut()
     }
 
     pub fn add_scenery_line(
-        mut self,
+        &mut self,
         id: u32,
-        end_points: (Vec2, Vec2),
-    ) -> Result<Self, LineGroupBuilderError> {
+        endpoints: (Vec2, Vec2),
+    ) -> Result<&mut SceneryLineBuilder, LineGroupBuilderError> {
         self.scenery_lines.push(
             SceneryLineBuilder::default()
                 .id(id)
-                .endpoints(end_points)
+                .endpoints(endpoints)
                 .to_owned(),
         );
 
-        Ok(self)
+        Ok(self.scenery_lines.last_mut().unwrap())
     }
 
-    pub fn get_scenery_line(&self, index: usize) -> Option<&SceneryLineBuilder> {
-        self.scenery_lines.get(index)
+    pub fn get_scenery_lines(&mut self) -> impl Iterator<Item = &mut SceneryLineBuilder> {
+        self.scenery_lines.iter_mut()
     }
 
-    pub fn build(&self) -> Result<LineGroup, LineGroupBuilderError> {
+    pub fn build(&mut self) -> Result<LineGroup, LineGroupBuilderError> {
         let mut standard_lines: Vec<StandardLine> = vec![];
         let mut acceleration_lines: Vec<AccelerationLine> = vec![];
         let mut scenery_lines: Vec<SceneryLine> = vec![];

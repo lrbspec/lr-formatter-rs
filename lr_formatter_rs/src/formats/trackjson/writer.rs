@@ -1,12 +1,14 @@
 use super::{JsonLayer, JsonLine, JsonRider, JsonTrack, V2};
 use crate::{
-    TrackWriteError,
-    track::{GridVersion, Layer, LineType, Track},
-    trackjson::{FaultyU32, LAYER_TYPE_FOLDER, LAYER_TYPE_LAYER},
+    formats::{
+        TrackWriteError,
+        trackjson::{FaultyU32, LAYER_TYPE_FOLDER, LAYER_TYPE_LAYER},
+    },
+    track::{GridVersion, Track},
 };
 
-pub fn write(internal: &Track) -> Result<String, TrackWriteError> {
-    let version = match internal.grid_version {
+pub fn write(track: &Track) -> Result<Vec<u8>, TrackWriteError> {
+    let version = match track.metadata().grid_version() {
         GridVersion::V6_0 => String::from("6.0"),
         GridVersion::V6_1 => String::from("6.1"),
         GridVersion::V6_2 => String::from("6.2"),
@@ -16,124 +18,155 @@ pub fn write(internal: &Track) -> Result<String, TrackWriteError> {
     let mut layers = Vec::<JsonLayer>::new();
     let mut riders = Vec::<JsonRider>::new();
 
-    for line in &internal.simulation_lines {
-        let line_type = if line.base_line.line_type == LineType::Standard {
-            0u8
-        } else {
-            1u8
-        };
-
+    for line in track.line_group().standard_lines() {
         lines.push(JsonLine {
-            id: line.base_line.id,
-            line_type,
-            x1: line.base_line.x1,
-            y1: line.base_line.y1,
-            x2: line.base_line.x2,
-            y2: line.base_line.y2,
-            flipped: Some(line.flipped),
-            left_ext: Some(line.left_extension),
-            right_ext: Some(line.right_extension),
+            id: line.id(),
+            line_type: 0,
+            x1: line.x1(),
+            y1: line.y1(),
+            x2: line.x2(),
+            y2: line.y1(),
+            flipped: Some(line.flipped()),
+            left_ext: Some(line.left_extension()),
+            right_ext: Some(line.right_extension()),
             extended: None,
-            multiplier: line.multiplier,
+            multiplier: None,
             width: None,
         });
     }
 
-    for line in &internal.scenery_lines {
+    for line in track.line_group().acceleration_lines() {
         lines.push(JsonLine {
-            id: line.base_line.id,
+            id: line.id(),
+            line_type: 1,
+            x1: line.x1(),
+            y1: line.y1(),
+            x2: line.x2(),
+            y2: line.y1(),
+            flipped: Some(line.flipped()),
+            left_ext: Some(line.left_extension()),
+            right_ext: Some(line.right_extension()),
+            extended: None,
+            multiplier: line.multiplier(),
+            width: None,
+        });
+    }
+
+    for line in track.line_group().scenery_lines() {
+        lines.push(JsonLine {
+            id: line.id(),
             line_type: 2,
-            x1: line.base_line.x1,
-            y1: line.base_line.y1,
-            x2: line.base_line.x2,
-            y2: line.base_line.y2,
+            x1: line.x1(),
+            y1: line.y1(),
+            x2: line.x2(),
+            y2: line.y1(),
             flipped: None,
             left_ext: None,
             right_ext: None,
             extended: None,
             multiplier: None,
-            width: line.width,
+            width: line.width(),
         });
     }
 
-    for layer in &internal.layers {
-        match layer {
-            Layer::Layer {
-                id,
-                name,
-                color,
-                visible,
-                editable,
-                folder_id,
-            } => {
-                let json_folder_id = if let Some(valid_id) = folder_id {
-                    Some(FaultyU32::Valid(*valid_id))
-                } else {
-                    Some(FaultyU32::Invalid(-1))
-                };
+    if let Some(layer_group) = track.layer_group() {
+        // TODO: Add layers in correct order
+        for layer in layer_group.layers() {
+            let json_folder_id = if let Some(valid_id) = layer.folder_id().unwrap_or(None) {
+                Some(FaultyU32::Valid(valid_id))
+            } else {
+                Some(FaultyU32::Invalid(-1))
+            };
 
+            layers.push(JsonLayer {
+                id: layer.id(),
+                layer_type: Some(LAYER_TYPE_LAYER),
+                name: layer.name().unwrap_or("".to_string()),
+                visible: layer.visible().unwrap_or(true),
+                editable: layer.editable(),
+                folder_id: json_folder_id,
+                size: None,
+            });
+        }
+        if let Some(layer_folders) = layer_group.layer_folders() {
+            for layer_folder in layer_folders {
                 layers.push(JsonLayer {
-                    id: *id,
-                    layer_type: Some(LAYER_TYPE_LAYER),
-                    name: color.to_css_string() + &name.clone(),
-                    visible: *visible,
-                    editable: Some(*editable),
-                    folder_id: json_folder_id,
-                    size: None,
-                });
-            }
-            Layer::Folder {
-                id,
-                name,
-                visible,
-                editable,
-                size,
-            } => {
-                layers.push(JsonLayer {
-                    id: *id,
+                    id: layer_folder.id(),
                     layer_type: Some(LAYER_TYPE_FOLDER),
-                    name: name.clone(),
-                    visible: *visible,
-                    editable: Some(*editable),
+                    name: layer_folder.name().unwrap_or("".to_string()),
+                    visible: layer_folder.visible().unwrap_or(true),
+                    editable: layer_folder.editable(),
                     folder_id: None,
-                    size: Some(*size),
+                    size: layer_folder.size(),
                 });
             }
         }
     }
 
-    for rider in &internal.riders {
+    if let Some(rider_group) = track.rider_group() {
+        for rider in rider_group.riders() {
+            let start_position = if let Some(start_pos) = rider.start_position() {
+                V2 {
+                    x: start_pos.x,
+                    y: start_pos.y,
+                }
+            } else {
+                V2 { x: 0.0, y: 0.0 }
+            };
+
+            let start_velocity = if let Some(start_vel) = rider.start_velocity() {
+                V2 {
+                    x: start_vel.x,
+                    y: start_vel.y,
+                }
+            } else {
+                V2 { x: 0.4, y: 0.0 }
+            };
+
+            riders.push(JsonRider {
+                start_pos: start_position,
+                start_vel: start_velocity,
+                angle: rider.start_angle(),
+                remountable: rider.can_remount(),
+            });
+        }
+    } else {
         riders.push(JsonRider {
-            start_pos: V2 {
-                x: rider.start_position.x,
-                y: rider.start_position.y,
-            },
-            start_vel: V2 {
-                x: rider.start_velocity.x,
-                y: rider.start_velocity.y,
-            },
-            angle: Some(rider.start_angle),
-            remountable: Some(rider.can_remount),
+            start_pos: V2 { x: 0.0, y: 0.0 },
+            start_vel: V2 { x: 0.4, y: 0.0 },
+            angle: Some(0.0),
+            remountable: Some(true),
         });
     }
 
-    let start_pos = V2 {
-        x: internal.start_position.x,
-        y: internal.start_position.y,
+    let start_pos = if let Some(start_position) = track.metadata().start_position() {
+        V2 {
+            x: start_position.x,
+            y: start_position.y,
+        }
+    } else {
+        V2 { x: 0.0, y: 0.0 }
     };
 
+    let label = track.metadata().title().unwrap_or("".to_string());
+    let creator = Some(track.metadata().artist().unwrap_or("".to_string()));
+    let description = Some(track.metadata().description().unwrap_or("".to_string()));
+    let script = Some(track.metadata().script().unwrap_or("".to_string()));
+    let duration = Some(track.metadata().duration().unwrap_or(1200));
+
     let track = JsonTrack {
-        label: internal.title.clone(),
+        label,
         version,
         start_pos,
         lines: Some(lines),
-        creator: Some(internal.artist.clone()),
-        description: Some(internal.description.clone()),
-        duration: Some(internal.duration),
-        script: Some(internal.script.clone()),
+        creator,
+        description,
+        duration,
+        script,
         layers: Some(layers),
         riders: Some(riders),
-        line_array: None, // Deprecated line format
+        // Deprecated LRA Json format
+        line_array: None,
         time_based_triggers: None,
         start_zoom: None,
         zero_start: None,
@@ -153,5 +186,5 @@ pub fn write(internal: &Track) -> Result<String, TrackWriteError> {
         message: format!("Failed to serialize json track: {}", err),
     })?;
 
-    Ok(track_string)
+    Ok(track_string.into_bytes())
 }

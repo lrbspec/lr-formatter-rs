@@ -1,14 +1,14 @@
 use super::{SUPPORTED_MODS, mod_flags};
 use crate::{
-    TrackReadError,
-    track::Track,
+    formats::TrackReadError,
+    track::{Track, TrackBuilder},
     util::{self, StringLength, parse_string},
 };
 use byteorder::{LittleEndian, ReadBytesExt};
 use std::io::{Cursor, Read, Seek, SeekFrom};
 
-pub fn read(data: &[u8]) -> Result<Track, TrackReadError> {
-    let mut internal = Track::default();
+pub fn read(data: Vec<u8>) -> Result<Track, TrackReadError> {
+    let track_builder = &mut TrackBuilder::new();
     let mut cursor = Cursor::new(data);
 
     // Magic number
@@ -58,7 +58,7 @@ pub fn read(data: &[u8]) -> Result<Track, TrackReadError> {
                 // Read that data
                 let current_position = cursor.stream_position()?;
                 cursor.seek(SeekFrom::Start(offset))?;
-                (mod_handler.read)(&mut cursor, &mut internal)?;
+                (mod_handler.read)(&mut cursor, track_builder)?;
                 cursor.seek(SeekFrom::Start(current_position))?;
             }
         } else if flags & mod_flags::REQUIRED != 0 {
@@ -83,5 +83,5 @@ pub fn read(data: &[u8]) -> Result<Track, TrackReadError> {
         }
     }
 
-    Ok(internal)
+    Ok(track_builder.build()?)
 }

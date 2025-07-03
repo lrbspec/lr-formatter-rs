@@ -6,17 +6,9 @@ pub(super) const UNREACHABLE_MESSAGE: &'static str =
 
 /// Implement this trait to include methods that access optional fields enabled by feature flags
 pub(super) trait FeatureFieldAccess<Feature, Error> {
-    /// Requires an optional feature to exist by checking feature flags and returning an immutable
-    /// reference to the unwrapped feature
-    fn require_feature<'a, T>(
-        &self,
-        field: &'a Option<T>,
-        feature: Feature,
-    ) -> Result<&'a T, Error>;
-
     /// Requires an optional feature to exist by checking feature flags and returning a mutable
     /// reference to the unwrapped feature
-    fn require_feature_mut<'a, T>(
+    fn require_feature<'a, T>(
         current_features: &HashSet<Feature>,
         field: &'a mut Option<T>,
         feature: Feature,

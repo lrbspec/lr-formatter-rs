@@ -1,6 +1,8 @@
 use crate::{
-    TrackReadError,
-    formats::lrb::{ModHandler, mod_flags},
+    formats::{
+        TrackReadError,
+        lrb::{ModHandler, mod_flags},
+    },
     track::GridVersion,
 };
 use byteorder::{ReadBytesExt, WriteBytesExt};
@@ -10,7 +12,7 @@ use once_cell::sync::Lazy;
 
 pub(in crate::formats::lrb) static GRIDVER: Lazy<ModHandler> = Lazy::new(|| ModHandler {
     flags: mod_flags::EXTRA_DATA | mod_flags::PHYSICS,
-    read: Box::new(|cursor, internal| {
+    read: Box::new(|cursor, track_builder| {
         let grid_version_number = cursor.read_u8()?;
         let grid_version = match grid_version_number {
             0 => GridVersion::V6_2,
@@ -24,12 +26,12 @@ pub(in crate::formats::lrb) static GRIDVER: Lazy<ModHandler> = Lazy::new(|| ModH
             }
         };
 
-        internal.grid_version = grid_version;
+        track_builder.metadata().grid_version(grid_version);
 
         Ok(())
     }),
-    write: Box::new(|cursor, internal| {
-        let version_number = match internal.grid_version {
+    write: Box::new(|cursor, track| {
+        let version_number = match track.metadata().grid_version() {
             GridVersion::V6_0 => 2,
             GridVersion::V6_1 => 1,
             GridVersion::V6_2 => 0,

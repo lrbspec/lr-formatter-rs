@@ -5,12 +5,14 @@ use std::{
 };
 
 use crate::{
-    TrackWriteError,
-    formats::sol::amf0::{Amf0Value, serialize},
-    track::{GridVersion, LineType, Track},
+    formats::{
+        TrackWriteError,
+        sol::amf0::{Amf0Value, serialize},
+    },
+    track::{GridVersion, Track, Vec2},
 };
 
-pub fn write(internal: &Track) -> Result<Vec<u8>, TrackWriteError> {
+pub fn write(track: &Track) -> Result<Vec<u8>, TrackWriteError> {
     let mut cursor = Cursor::new(Vec::new());
 
     cursor.write_all(b"\x00\xBF")?;
@@ -23,42 +25,56 @@ pub fn write(internal: &Track) -> Result<Vec<u8>, TrackWriteError> {
 
     let mut lines_vec = vec![];
 
-    for line in internal.scenery_lines.iter() {
+    for line in track.line_group().standard_lines() {
+        let ext = if line.left_extension() { 1.0 } else { 0.0 }
+            + if line.right_extension() { 2.0 } else { 0.0 };
+        let inv = if line.flipped() { 1.0 } else { 0.0 };
+        let numeric_line_type = 0.0;
         let mut line_object = HashMap::new();
-        line_object.insert("0".to_string(), Amf0Value::Number(line.base_line.x1));
-        line_object.insert("1".to_string(), Amf0Value::Number(line.base_line.y1));
-        line_object.insert("2".to_string(), Amf0Value::Number(line.base_line.x2));
-        line_object.insert("3".to_string(), Amf0Value::Number(line.base_line.y2));
-        line_object.insert("4".to_string(), Amf0Value::Number(0.0));
-        line_object.insert("5".to_string(), Amf0Value::Number(0.0));
-        line_object.insert("6".to_string(), Amf0Value::Number(0.0));
-        line_object.insert("7".to_string(), Amf0Value::Number(0.0));
-        line_object.insert("8".to_string(), Amf0Value::Number(line.base_line.id as f64));
-        line_object.insert("9".to_string(), Amf0Value::Number(2.0));
-        lines_vec.push(line_object);
-    }
-
-    for line in internal.simulation_lines.iter() {
-        let ext = if line.left_extension { 1.0 } else { 0.0 }
-            + if line.right_extension { 2.0 } else { 0.0 };
-        let inv = if line.flipped { 1.0 } else { 0.0 };
-        let numeric_line_type = if line.base_line.line_type == LineType::Standard {
-            0.0
-        } else {
-            1.0
-        };
-
-        let mut line_object = HashMap::new();
-        line_object.insert("0".to_string(), Amf0Value::Number(line.base_line.x1));
-        line_object.insert("1".to_string(), Amf0Value::Number(line.base_line.y1));
-        line_object.insert("2".to_string(), Amf0Value::Number(line.base_line.x2));
-        line_object.insert("3".to_string(), Amf0Value::Number(line.base_line.y2));
+        line_object.insert("0".to_string(), Amf0Value::Number(line.x1()));
+        line_object.insert("1".to_string(), Amf0Value::Number(line.y1()));
+        line_object.insert("2".to_string(), Amf0Value::Number(line.x2()));
+        line_object.insert("3".to_string(), Amf0Value::Number(line.y2()));
         line_object.insert("4".to_string(), Amf0Value::Number(ext));
         line_object.insert("5".to_string(), Amf0Value::Number(inv));
         line_object.insert("6".to_string(), Amf0Value::Number(0.0));
         line_object.insert("7".to_string(), Amf0Value::Number(0.0));
-        line_object.insert("8".to_string(), Amf0Value::Number(line.base_line.id as f64));
+        line_object.insert("8".to_string(), Amf0Value::Number(line.id() as f64));
         line_object.insert("9".to_string(), Amf0Value::Number(numeric_line_type));
+        lines_vec.push(line_object);
+    }
+
+    for line in track.line_group().acceleration_lines() {
+        let ext = if line.left_extension() { 1.0 } else { 0.0 }
+            + if line.right_extension() { 2.0 } else { 0.0 };
+        let inv = if line.flipped() { 1.0 } else { 0.0 };
+        let numeric_line_type = 1.0;
+        let mut line_object = HashMap::new();
+        line_object.insert("0".to_string(), Amf0Value::Number(line.x1()));
+        line_object.insert("1".to_string(), Amf0Value::Number(line.y1()));
+        line_object.insert("2".to_string(), Amf0Value::Number(line.x2()));
+        line_object.insert("3".to_string(), Amf0Value::Number(line.y2()));
+        line_object.insert("4".to_string(), Amf0Value::Number(ext));
+        line_object.insert("5".to_string(), Amf0Value::Number(inv));
+        line_object.insert("6".to_string(), Amf0Value::Number(0.0));
+        line_object.insert("7".to_string(), Amf0Value::Number(0.0));
+        line_object.insert("8".to_string(), Amf0Value::Number(line.id() as f64));
+        line_object.insert("9".to_string(), Amf0Value::Number(numeric_line_type));
+        lines_vec.push(line_object);
+    }
+
+    for line in track.line_group().scenery_lines() {
+        let mut line_object = HashMap::new();
+        line_object.insert("0".to_string(), Amf0Value::Number(line.x1()));
+        line_object.insert("1".to_string(), Amf0Value::Number(line.y1()));
+        line_object.insert("2".to_string(), Amf0Value::Number(line.x2()));
+        line_object.insert("3".to_string(), Amf0Value::Number(line.y2()));
+        line_object.insert("4".to_string(), Amf0Value::Number(0.0));
+        line_object.insert("5".to_string(), Amf0Value::Number(0.0));
+        line_object.insert("6".to_string(), Amf0Value::Number(0.0));
+        line_object.insert("7".to_string(), Amf0Value::Number(0.0));
+        line_object.insert("8".to_string(), Amf0Value::Number(line.id() as f64));
+        line_object.insert("9".to_string(), Amf0Value::Number(2.0));
         lines_vec.push(line_object);
     }
 
@@ -74,23 +90,26 @@ pub fn write(internal: &Track) -> Result<Vec<u8>, TrackWriteError> {
         line_array_object.insert(index.to_string(), Amf0Value::ECMAArray(line_object.clone()));
     }
 
-    let string_grid_version = match internal.grid_version {
+    let string_grid_version = match track.metadata().grid_version() {
         GridVersion::V6_0 => "6.0",
         GridVersion::V6_1 => "6.1",
         GridVersion::V6_2 => "6.2",
+    }
+    .to_string();
+
+    let line_count = (track.line_group().standard_lines().len()
+        + track.line_group().acceleration_lines().len()
+        + track.line_group().scenery_lines().len()) as f64;
+
+    let start_position = if let Some(start_pos) = track.metadata().start_position() {
+        start_pos
+    } else {
+        Vec2 { x: 0.0, y: 0.0 }
     };
 
-    let line_count = (internal.scenery_lines.len() + internal.simulation_lines.len()) as f64;
-
     let mut array_start_position = HashMap::new();
-    array_start_position.insert(
-        "0".to_string(),
-        Amf0Value::Number(internal.start_position.x),
-    );
-    array_start_position.insert(
-        "1".to_string(),
-        Amf0Value::Number(internal.start_position.y),
-    );
+    array_start_position.insert("0".to_string(), Amf0Value::Number(start_position.x));
+    array_start_position.insert("1".to_string(), Amf0Value::Number(start_position.y));
 
     let mut first_null_array = HashMap::new();
     first_null_array.insert("0".to_string(), Amf0Value::Null);
@@ -109,31 +128,31 @@ pub fn write(internal: &Track) -> Result<Vec<u8>, TrackWriteError> {
     track_data.insert("1".to_string(), Amf0Value::ECMAArray(first_null_array));
     track_data.insert("2".to_string(), Amf0Value::ECMAArray(second_null_array));
 
-    let mut track = HashMap::new();
-    track.insert(
-        "label".to_string(),
-        Amf0Value::Utf8String(internal.title.clone()),
-    );
-    track.insert(
+    let label = if let Some(title) = track.metadata().title() {
+        title
+    } else {
+        "".to_string()
+    };
+
+    let mut sol_track = HashMap::new();
+    sol_track.insert("label".to_string(), Amf0Value::Utf8String(label));
+    sol_track.insert(
         "version".to_string(),
-        Amf0Value::Utf8String(string_grid_version.to_string()),
+        Amf0Value::Utf8String(string_grid_version),
     );
-    track.insert(
+    sol_track.insert(
         "startLine".to_string(),
         Amf0Value::ECMAArray(array_start_position),
     );
-    track.insert("level".to_string(), Amf0Value::Number(line_count));
-    track.insert("data".to_string(), Amf0Value::ECMAArray(line_array_object));
+    sol_track.insert("level".to_string(), Amf0Value::Number(line_count));
+    sol_track.insert("data".to_string(), Amf0Value::ECMAArray(line_array_object));
 
-    if let Some(rider) = internal.riders.get(0) {
-        if rider.start_velocity.x == 0.0 && rider.start_velocity.y == 0.0 {
-            // Insert for zero start
-            track.insert("trackData".to_string(), Amf0Value::ECMAArray(track_data));
-        }
+    if track.metadata().zero_start() {
+        sol_track.insert("trackData".to_string(), Amf0Value::ECMAArray(track_data));
     }
 
     let mut track_list = HashMap::new();
-    track_list.insert("0".to_string(), Amf0Value::Object(track));
+    track_list.insert("0".to_string(), Amf0Value::Object(sol_track));
 
     // Serialize and write the data
     let data = vec![Amf0Value::ECMAArray(track_list)];

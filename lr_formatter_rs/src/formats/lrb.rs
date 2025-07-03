@@ -9,13 +9,17 @@ mod writer;
 pub use reader::read;
 pub use writer::write;
 
-use crate::{TrackReadError, TrackWriteError, track::Track};
+use crate::{
+    formats::{TrackReadError, TrackWriteError},
+    track::{Track, TrackBuilder},
+};
 use base::{GRIDVER, LABEL, SCNLINE, SIMLINE, STARTOFFSET};
 use once_cell::sync::Lazy;
 use std::{collections::HashMap, io::Cursor};
 
-type ReadLambda =
-    Box<dyn Fn(&mut Cursor<&[u8]>, &mut Track) -> Result<(), TrackReadError> + Send + Sync>;
+type ReadLambda = Box<
+    dyn Fn(&mut Cursor<Vec<u8>>, &mut TrackBuilder) -> Result<(), TrackReadError> + Send + Sync,
+>;
 
 type WriteLambda =
     Box<dyn Fn(&mut Cursor<Vec<u8>>, &Track) -> Result<(), TrackWriteError> + Send + Sync>;

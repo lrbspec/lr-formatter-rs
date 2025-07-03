@@ -1,4 +1,4 @@
-use lr_formatter_rs::{lrb, sol, trackjson, trk};
+use lr_formatter_rs::formats::{lrb, sol, trackjson, trk};
 
 #[tauri::command]
 fn convert_files(
@@ -8,24 +8,17 @@ fn convert_files(
     sol_index: u32,
 ) -> Result<Vec<u8>, String> {
     let internal_format = match from_format.to_uppercase().as_str() {
-        "JSON" => {
-            let input_str = String::from_utf8(file_bytes.to_vec())
-                .map_err(|e| format!("Failed to stringify file: {}", e))?;
-            trackjson::read(&input_str).map_err(|e| format!("Failed to parse: {}", e))?
+        "JSON" => trackjson::read(file_bytes).map_err(|e| format!("Failed to parse: {}", e))?,
+        "LRB" => lrb::read(file_bytes).map_err(|e| format!("Failed to parse: {}", e))?,
+        "TRK" => trk::read(file_bytes).map_err(|e| format!("Failed to parse: {}", e))?,
+        "SOL" => {
+            sol::read(file_bytes, Some(sol_index)).map_err(|e| format!("Failed to parse: {}", e))?
         }
-        "LRB" => lrb::read(&file_bytes).map_err(|e| format!("Failed to parse: {}", e))?,
-        "TRK" => trk::read(&file_bytes).map_err(|e| format!("Failed to parse: {}", e))?,
-        "SOL" => sol::read(&file_bytes, Some(sol_index))
-            .map_err(|e| format!("Failed to parse: {}", e))?,
         _ => Err(format!("Unsupported 'from' format"))?,
     };
 
     match to_format.to_uppercase().as_str() {
-        "JSON" => {
-            let json_str = trackjson::write(&internal_format)
-                .map_err(|e| format!("Failed to write: {}", e))?;
-            Ok(json_str.into_bytes())
-        }
+        "JSON" => trackjson::write(&internal_format).map_err(|e| format!("Failed to write: {}", e)),
         "LRB" => lrb::write(&internal_format).map_err(|e| format!("Failed to write: {}", e)),
         "SOL" => sol::write(&internal_format).map_err(|e| format!("Failed to write: {}", e)),
         _ => Err(format!("Unsupported 'to' format")),

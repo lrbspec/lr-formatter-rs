@@ -1,5 +1,2 @@
-mod rider_base;
-mod rider_group;
-
-pub use rider_base::{Rider, RiderBuilder, RiderBuilderError};
-pub use rider_group::{RiderFeature, RiderGroup, RiderGroupBuilder, RiderGroupBuilderError};
+pub mod rider_base;
+pub mod rider_group;

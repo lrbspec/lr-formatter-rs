@@ -6,14 +6,18 @@ use std::{
 use byteorder::{LittleEndian, ReadBytesExt};
 
 use crate::{
-    TrackReadError,
-    formats::trk::{
-        FEATURE_BACKGROUND_COLOR_B, FEATURE_BACKGROUND_COLOR_G, FEATURE_BACKGROUND_COLOR_R,
-        FEATURE_GRAVITY_WELL_SIZE, FEATURE_LINE_COLOR_B, FEATURE_LINE_COLOR_G, FEATURE_START_ZOOM,
-        FEATURE_TRIGGERS, FEATURE_X_GRAVITY, FEATURE_Y_GRAVITY,
+    formats::{
+        TrackReadError,
+        trk::{
+            FEATURE_BACKGROUND_COLOR_B, FEATURE_BACKGROUND_COLOR_G, FEATURE_BACKGROUND_COLOR_R,
+            FEATURE_FRICTIONLESS, FEATURE_GRAVITY_WELL_SIZE, FEATURE_LINE_COLOR_B,
+            FEATURE_LINE_COLOR_G, FEATURE_REMOUNT, FEATURE_START_ZOOM, FEATURE_TRIGGERS,
+            FEATURE_X_GRAVITY, FEATURE_Y_GRAVITY, FEATURE_ZERO_START,
+        },
     },
-    track::{Audio, GridVersion, Line, LineType, SceneryLine, SimulationLine, Track},
-    trk::{FEATURE_FRICTIONLESS, FEATURE_REMOUNT, FEATURE_ZERO_START},
+    track::{
+        GridVersion, LineType, RGBColor, Track, TrackBuilder, Vec2, line::line_group::LineFeature,
+    },
     util::{StringLength, bytes_to_hex_string, parse_string},
 };
 
@@ -22,8 +26,9 @@ use super::{
     FEATURE_SCENERY_WIDTH, FEATURE_SONG_INFO,
 };
 
-pub fn read(data: &[u8]) -> Result<Track, TrackReadError> {
-    let mut internal = Track::default();
+pub fn read(data: Vec<u8>) -> Result<Track, TrackReadError> {
+    let track_builder = &mut TrackBuilder::new();
+
     let mut cursor = Cursor::new(data);
 
     // Magic number
@@ -52,14 +57,25 @@ pub fn read(data: &[u8]) -> Result<Track, TrackReadError> {
 
     for feature in feature_string.split(';').filter(|s| !s.is_empty()) {
         included_features.insert(feature);
+        if feature == FEATURE_RED_MULTIPLIER {
+            track_builder
+                .line_group()
+                .enable_feature(LineFeature::AccelerationMultiplier);
+        }
+        if feature == FEATURE_SCENERY_WIDTH {
+            track_builder
+                .line_group()
+                .enable_feature(LineFeature::SceneryWidth);
+        }
         // TODO: Attach warning if feature not accounted for
     }
 
-    internal.grid_version = if included_features.contains(FEATURE_6_1) {
+    let grid_version = if included_features.contains(FEATURE_6_1) {
         GridVersion::V6_1
     } else {
         GridVersion::V6_2
     };
+    track_builder.metadata().grid_version(grid_version);
 
     if included_features.contains(FEATURE_SONG_INFO) {
         let mut song_string_length = 0;
@@ -93,14 +109,18 @@ pub fn read(data: &[u8]) -> Result<Track, TrackReadError> {
 
         let name = song_data[0];
         let seconds_offset = song_data[1].parse::<f64>()?;
-        internal.audio = Some(Audio {
-            file_name: name.to_string(),
-            offset_until_start: -seconds_offset,
-        });
+        track_builder
+            .metadata()
+            .audio_filename(name)
+            .audio_offset_until_start(-seconds_offset);
     }
 
-    internal.start_position.x = cursor.read_f64::<LittleEndian>()?;
-    internal.start_position.y = cursor.read_f64::<LittleEndian>()?;
+    let start_pos_x = cursor.read_f64::<LittleEndian>()?;
+    let start_pos_y = cursor.read_f64::<LittleEndian>()?;
+    track_builder.metadata().start_position(Vec2 {
+        x: start_pos_x,
+        y: start_pos_y,
+    });
 
     let line_count = cursor.read_u32::<LittleEndian>()?;
 
@@ -162,48 +182,57 @@ pub fn read(data: &[u8]) -> Result<Track, TrackReadError> {
         let line_y1 = cursor.read_f64::<LittleEndian>()?;
         let line_x2 = cursor.read_f64::<LittleEndian>()?;
         let line_y2 = cursor.read_f64::<LittleEndian>()?;
+        let endpoints = (
+            Vec2 {
+                x: line_x1,
+                y: line_y1,
+            },
+            Vec2 {
+                x: line_x2,
+                y: line_y2,
+            },
+        );
+        let left_ext = line_ext & 0x1 != 0;
+        let right_ext = line_ext & 0x2 != 0;
 
-        let base_line = Line {
-            id: line_id,
-            x1: line_x1,
-            y1: line_y1,
-            x2: line_x2,
-            y2: line_y2,
-            line_type,
-        };
-
-        if line_type == LineType::Scenery {
-            internal.scenery_lines.push(SceneryLine {
-                base_line,
-                width: line_scenery_width,
-            });
-        } else {
-            internal.simulation_lines.push(SimulationLine {
-                base_line,
-                flipped: line_inv,
-                left_extension: line_ext & 0x1 != 0,
-                right_extension: line_ext & 0x2 != 0,
-                multiplier: line_multiplier,
-            });
+        match line_type {
+            LineType::Standard => {
+                track_builder
+                    .line_group()
+                    .add_standard_line(line_id, endpoints, line_inv, left_ext, right_ext)?;
+            }
+            LineType::Acceleration => {
+                track_builder
+                    .line_group()
+                    .add_acceleration_line(line_id, endpoints, line_inv, left_ext, right_ext)?
+                    .multiplier(line_multiplier);
+            }
+            LineType::Scenery => {
+                track_builder
+                    .line_group()
+                    .add_scenery_line(line_id, endpoints)?
+                    .width(line_scenery_width);
+            }
         }
     }
 
-    for line in internal.scenery_lines.iter_mut() {
+    for line in track_builder.line_group().get_scenery_lines() {
         max_id += 1;
-        line.base_line.id = max_id;
+        line.id(max_id);
     }
 
-    internal.zero_friction_riders = included_features.contains(FEATURE_FRICTIONLESS);
+    track_builder
+        .metadata()
+        .zero_friction_riders(included_features.contains(FEATURE_FRICTIONLESS));
 
-    let rider = internal.riders.get_mut(0).ok_or(TrackReadError::Other {
-        message: "Internal track should have contained an initial rider".to_string(),
-    })?;
-
-    rider.can_remount = included_features.contains(FEATURE_REMOUNT);
+    if included_features.contains(FEATURE_REMOUNT) {
+        track_builder.metadata().remount(true);
+        // TODO: Should this also be set?
+        track_builder.metadata().use_legacy_remount(true);
+    }
 
     if included_features.contains(FEATURE_ZERO_START) {
-        rider.start_velocity.x = 0.0;
-        rider.start_velocity.y = 0.0;
+        track_builder.metadata().zero_start(true);
     }
 
     let current = cursor.stream_position()?;
@@ -211,7 +240,7 @@ pub fn read(data: &[u8]) -> Result<Track, TrackReadError> {
     cursor.seek(SeekFrom::Start(current))?;
 
     if current == end {
-        return Ok(internal);
+        return Ok(track_builder.build()?);
     }
 
     // Metadata section
@@ -228,6 +257,20 @@ pub fn read(data: &[u8]) -> Result<Track, TrackReadError> {
 
     let num_entries = cursor.read_u16::<LittleEndian>()?;
 
+    let mut start_zoom = 4.0;
+    let mut start_gravity = Vec2 { x: 0.0, y: 1.0 };
+    let mut gravity_well_size = 10.0;
+    let mut start_background_color = RGBColor {
+        red: 244,
+        green: 245,
+        blue: 249,
+    };
+    let mut start_line_color = RGBColor {
+        red: 0,
+        green: 0,
+        blue: 0,
+    };
+
     for _ in 0..num_entries {
         let meta_string = parse_string::<LittleEndian>(&mut cursor, StringLength::U16)?;
         let key_value_pair: Vec<&str> = meta_string.split("=").filter(|s| !s.is_empty()).collect();
@@ -242,37 +285,36 @@ pub fn read(data: &[u8]) -> Result<Track, TrackReadError> {
         let key = key_value_pair[0];
         let value = key_value_pair[1];
 
-        // TODO: Unused
         match key {
             FEATURE_START_ZOOM => {
-                let start_zoom = value.parse::<f32>()?;
+                start_zoom = value.parse::<f32>()? as f64;
             }
             FEATURE_X_GRAVITY => {
-                let x_gravity = value.parse::<f32>()?;
+                start_gravity.x = value.parse::<f32>()? as f64;
             }
             FEATURE_Y_GRAVITY => {
-                let y_gravity = value.parse::<f32>()?;
+                start_gravity.y = value.parse::<f32>()? as f64;
             }
             FEATURE_GRAVITY_WELL_SIZE => {
-                let gravity_well_size = value.parse::<f64>()?;
+                gravity_well_size = value.parse::<f64>()?;
             }
             FEATURE_BACKGROUND_COLOR_R => {
-                let background_color_red = value.parse::<i32>()?;
+                start_background_color.red = value.parse::<i32>()? as u8;
             }
             FEATURE_BACKGROUND_COLOR_G => {
-                let background_color_green = value.parse::<i32>()?;
+                start_background_color.green = value.parse::<i32>()? as u8;
             }
             FEATURE_BACKGROUND_COLOR_B => {
-                let background_color_blue = value.parse::<i32>()?;
+                start_background_color.blue = value.parse::<i32>()? as u8;
             }
             FEATURE_LINE_COLOR_R => {
-                let line_color_red = value.parse::<i32>()?;
+                start_line_color.red = value.parse::<i32>()? as u8;
             }
             FEATURE_LINE_COLOR_G => {
-                let line_color_green = value.parse::<i32>()?;
+                start_line_color.green = value.parse::<i32>()? as u8;
             }
             FEATURE_LINE_COLOR_B => {
-                let line_color_blue = value.parse::<i32>()?;
+                start_line_color.blue = value.parse::<i32>()? as u8;
             }
             FEATURE_TRIGGERS => {
                 for (i, trigger) in value.split('&').filter(|s| !s.is_empty()).enumerate() {
@@ -326,7 +368,15 @@ pub fn read(data: &[u8]) -> Result<Track, TrackReadError> {
         }
     }
 
-    // TODO: STARTZOOM, XGRAVITY, YGRAVITY, GRAVITYWELLSIZE, BGCOLORR/G/B, LINECOLORR/G/B, TRIGGERS
+    track_builder.metadata().start_zoom(start_zoom);
+    track_builder.metadata().start_gravity(start_gravity);
+    track_builder
+        .metadata()
+        .gravity_well_size(gravity_well_size);
+    track_builder
+        .metadata()
+        .start_background_color(start_background_color);
+    track_builder.metadata().start_line_color(start_line_color);
 
-    Ok(internal)
+    Ok(track_builder.build()?)
 }

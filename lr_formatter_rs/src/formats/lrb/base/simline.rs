@@ -1,6 +1,6 @@
 use crate::{
     formats::lrb::{ModHandler, mod_flags},
-    track::{Line, LineType, SimulationLine},
+    track::Vec2,
 };
 use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 use once_cell::sync::Lazy;
@@ -23,7 +23,7 @@ pub const FLAG_RIGHT_EXTENSION: u8 = 1 << 3;
 
 pub(in crate::formats::lrb) static SIMLINE: Lazy<ModHandler> = Lazy::new(|| ModHandler {
     flags: mod_flags::EXTRA_DATA | mod_flags::PHYSICS | mod_flags::SCENERY,
-    read: Box::new(|cursor, internal| {
+    read: Box::new(|cursor, track_builder| {
         let num_lines = cursor.read_u32::<LittleEndian>()?;
         for _ in 0..num_lines {
             let id = cursor.read_u32::<LittleEndian>()?;
@@ -32,56 +32,76 @@ pub(in crate::formats::lrb) static SIMLINE: Lazy<ModHandler> = Lazy::new(|| ModH
             let y1 = cursor.read_f64::<LittleEndian>()?;
             let x2 = cursor.read_f64::<LittleEndian>()?;
             let y2 = cursor.read_f64::<LittleEndian>()?;
-            let line_type = if line_flags & FLAG_RED != 0 {
-                LineType::Acceleration
-            } else {
-                LineType::Standard
-            };
             let flipped = line_flags & FLAG_INVERTED != 0;
             let left_extension = line_flags & FLAG_LEFT_EXTENSION != 0;
             let right_extension = line_flags & FLAG_RIGHT_EXTENSION != 0;
-            let base_line = Line {
-                id,
-                x1,
-                y1,
-                x2,
-                y2,
-                line_type,
-            };
-            internal.simulation_lines.push(SimulationLine {
-                base_line,
-                flipped,
-                left_extension,
-                right_extension,
-                multiplier: None,
-            });
+            let endpoints = (Vec2 { x: x1, y: y1 }, Vec2 { x: x2, y: y2 });
+            if line_flags & FLAG_RED != 0 {
+                track_builder.line_group().add_acceleration_line(
+                    id,
+                    endpoints,
+                    flipped,
+                    left_extension,
+                    right_extension,
+                )?;
+            } else {
+                track_builder.line_group().add_standard_line(
+                    id,
+                    endpoints,
+                    flipped,
+                    left_extension,
+                    right_extension,
+                )?;
+            }
         }
 
         Ok(())
     }),
-    write: Box::new(|cursor, internal| {
-        cursor.write_u32::<LittleEndian>(internal.simulation_lines.len() as u32)?;
-        for simulation_line in &internal.simulation_lines {
+    write: Box::new(|cursor, track| {
+        cursor.write_u32::<LittleEndian>(
+            (track.line_group().acceleration_lines().len()
+                + track.line_group().standard_lines().len()) as u32,
+        )?;
+
+        for line in track.line_group().standard_lines() {
             let mut line_flags: u8 = 0;
-            if simulation_line.base_line.line_type == LineType::Acceleration {
-                line_flags |= FLAG_RED;
-            }
-            if simulation_line.flipped {
+            if line.flipped() {
                 line_flags |= FLAG_INVERTED;
             }
-            if simulation_line.left_extension {
+            if line.left_extension() {
                 line_flags |= FLAG_LEFT_EXTENSION;
             }
-            if simulation_line.right_extension {
+            if line.right_extension() {
                 line_flags |= FLAG_RIGHT_EXTENSION;
             }
 
-            cursor.write_u32::<LittleEndian>(simulation_line.base_line.id)?;
+            cursor.write_u32::<LittleEndian>(line.id())?;
             cursor.write_u8(line_flags)?;
-            cursor.write_f64::<LittleEndian>(simulation_line.base_line.x1)?;
-            cursor.write_f64::<LittleEndian>(simulation_line.base_line.y1)?;
-            cursor.write_f64::<LittleEndian>(simulation_line.base_line.x2)?;
-            cursor.write_f64::<LittleEndian>(simulation_line.base_line.y2)?;
+            cursor.write_f64::<LittleEndian>(line.x1())?;
+            cursor.write_f64::<LittleEndian>(line.y1())?;
+            cursor.write_f64::<LittleEndian>(line.x2())?;
+            cursor.write_f64::<LittleEndian>(line.y2())?;
+        }
+
+        for line in track.line_group().acceleration_lines() {
+            let mut line_flags: u8 = 0;
+            line_flags |= FLAG_RED;
+            if line.flipped() {
+                line_flags |= FLAG_INVERTED;
+            }
+            if line.left_extension() {
+                line_flags |= FLAG_LEFT_EXTENSION;
+            }
+            if line.right_extension() {
+                line_flags |= FLAG_RIGHT_EXTENSION;
+            }
+
+            cursor.write_u32::<LittleEndian>(line.id())?;
+            cursor.write_u8(line_flags)?;
+            cursor.write_f64::<LittleEndian>(line.x1())?;
+            cursor.write_f64::<LittleEndian>(line.y1())?;
+            cursor.write_f64::<LittleEndian>(line.x2())?;
+            cursor.write_f64::<LittleEndian>(line.y2())?;
         }
 
         Ok(())

@@ -1,18 +1,22 @@
-use crate::sol::{Amf0DeserializationError, Amf0SerializationError};
+use crate::formats::sol::{Amf0DeserializationError, Amf0SerializationError};
+use crate::track::TrackBuilderError;
+use crate::track::layer::layer_group::LayerGroupBuilderError;
+use crate::track::line::line_group::LineGroupBuilderError;
+use crate::track::rider::rider_group::RiderGroupBuilderError;
 use crate::util::ParseLengthPrefixedStringError;
+use std::string::FromUtf8Error;
 use std::{
     io,
     num::{ParseFloatError, ParseIntError, TryFromIntError},
 };
 use thiserror::Error;
 
-// TODO: Replace String with &'static str
-
 #[derive(Error, Debug)]
 pub enum TrackReadError {
     #[error("{0}")]
     Io(#[from] io::Error),
-    #[error("Invalid value for [{name}]: {value}")]
+    // TODO maybe remove this
+    #[error("Invalid value for `{name}`: {value}")]
     InvalidData { name: String, value: String },
     #[error("{0}")]
     IntConversion(#[from] ParseIntError),
@@ -22,6 +26,16 @@ pub enum TrackReadError {
     StringParsing(#[from] ParseLengthPrefixedStringError),
     #[error("{0}")]
     Amf0Deserialization(#[from] Amf0DeserializationError),
+    #[error("{0}")]
+    TrackBuilderError(#[from] TrackBuilderError),
+    #[error("{0}")]
+    LineGroupBuilderError(#[from] LineGroupBuilderError),
+    #[error("{0}")]
+    RiderGroupBuilderError(#[from] RiderGroupBuilderError),
+    #[error("{0}")]
+    LayerGroupBuilderError(#[from] LayerGroupBuilderError),
+    #[error("{0}")]
+    FromUTF8Error(#[from] FromUtf8Error),
     // TODO remove this
     #[error("{message}")]
     Other { message: String },

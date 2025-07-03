@@ -24,7 +24,7 @@ pub(crate) enum StringLength {
 
 /// Generalized function for reading binary length-prefixed strings
 pub(crate) fn parse_string<B: ByteOrder>(
-    cursor: &mut io::Cursor<&[u8]>,
+    cursor: &mut io::Cursor<Vec<u8>>,
     length_type: StringLength,
 ) -> Result<String, ParseLengthPrefixedStringError> {
     let length = match length_type {

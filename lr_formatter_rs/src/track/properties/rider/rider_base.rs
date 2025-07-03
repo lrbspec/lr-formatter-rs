@@ -1,14 +1,16 @@
 use crate::track::Vec2;
 use derive_builder::Builder;
-use getset::Getters;
+use getset::CopyGetters;
 
-#[derive(Getters, Debug, Builder)]
-#[getset(get = "pub")]
+#[derive(CopyGetters, Debug, Builder)]
+#[getset(get_copy = "pub")]
 pub struct Rider {
-    start_position: Vec2,
-    start_velocity: Vec2,
-    #[builder(setter(into, strip_option), default)]
+    #[builder(default)]
+    start_position: Option<Vec2>,
+    #[builder(default)]
+    start_velocity: Option<Vec2>,
+    #[builder(default)]
     start_angle: Option<f64>,
-    #[builder(setter(into, strip_option), default)]
+    #[builder(default)]
     can_remount: Option<bool>,
 }

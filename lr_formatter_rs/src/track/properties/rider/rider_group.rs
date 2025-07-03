@@ -37,21 +37,6 @@ impl Default for RiderGroupBuilder {
 
 impl FeatureFieldAccess<RiderFeature, RiderGroupBuilderError> for RiderGroupBuilder {
     fn require_feature<'a, T>(
-        &self,
-        field: &'a Option<T>,
-        feature: RiderFeature,
-    ) -> Result<&'a T, RiderGroupBuilderError> {
-        if !self.features.contains(&feature) {
-            return Err(RiderGroupBuilderError::MissingFeatureFlag(feature));
-        }
-
-        match field.as_ref() {
-            Some(some_field) => Ok(some_field),
-            None => unreachable!("{}", UNREACHABLE_MESSAGE),
-        }
-    }
-
-    fn require_feature_mut<'a, T>(
         current_features: &HashSet<RiderFeature>,
         field: &'a mut Option<T>,
         feature: RiderFeature,
@@ -85,21 +70,21 @@ impl FeatureFieldAccess<RiderFeature, RiderGroupBuilderError> for RiderGroupBuil
 }
 
 impl RiderGroupBuilder {
-    pub fn enable_feature(mut self, feature: RiderFeature) -> Self {
+    pub fn enable_feature(&mut self, feature: RiderFeature) -> &mut Self {
         self.features.insert(feature);
         self
     }
 
-    pub fn add_rider(mut self) -> Self {
+    pub fn add_rider(&mut self) -> &mut RiderBuilder {
         self.riders.push(RiderBuilder::default().to_owned());
-        self
+        self.riders.last_mut().unwrap()
     }
 
-    pub fn get_rider(&self, index: usize) -> Option<&RiderBuilder> {
-        self.riders.get(index)
+    pub fn get_riders(&mut self) -> impl Iterator<Item = &mut RiderBuilder> {
+        self.riders.iter_mut()
     }
 
-    pub fn build(&self) -> Result<RiderGroup, RiderGroupBuilderError> {
+    pub fn build(&mut self) -> Result<RiderGroup, RiderGroupBuilderError> {
         let mut riders: Vec<Rider> = vec![];
 
         for rider_builder in &self.riders {
@@ -108,8 +93,8 @@ impl RiderGroupBuilder {
                 RiderFeature::StartAngle,
                 &rider.start_angle(),
                 "start_angle",
-            );
-            self.check_feature(RiderFeature::Remount, &rider.can_remount(), "can_remount");
+            )?;
+            self.check_feature(RiderFeature::Remount, &rider.can_remount(), "can_remount")?;
             riders.push(rider);
         }
 

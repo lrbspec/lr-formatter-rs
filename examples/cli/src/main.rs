@@ -1,7 +1,7 @@
 use anyhow::{Context, Result, bail};
 use clap::Parser;
 use dialoguer::Input;
-use lr_formatter_rs::{lrb, sol, trackjson, trk};
+use lr_formatter_rs::formats::{lrb, sol, trackjson, trk};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
@@ -28,22 +28,16 @@ enum Format {
     SOL(Option<u32>),
 }
 
-fn convert(input: &[u8], from: Format, to: Format) -> Result<Vec<u8>> {
+fn convert(input: Vec<u8>, from: Format, to: Format) -> Result<Vec<u8>> {
     let internal_format = match from {
-        Format::TrackJson => {
-            let input_str = String::from_utf8(input.to_vec())?;
-            trackjson::read(&input_str)?
-        }
+        Format::TrackJson => trackjson::read(input)?,
         Format::LRB => lrb::read(input)?,
         Format::TRK => trk::read(input)?,
         Format::SOL(track_index) => sol::read(input, track_index)?,
     };
 
     let output_bytes = match to {
-        Format::TrackJson => {
-            let json_str = trackjson::write(&internal_format)?;
-            Ok(json_str.into_bytes())
-        }
+        Format::TrackJson => trackjson::write(&internal_format),
         Format::LRB => lrb::write(&internal_format),
         Format::SOL(_) => sol::write(&internal_format),
         _ => bail!("Unsupported to format. Must be one of: trackjson, lrb, sol"),
@@ -126,7 +120,7 @@ fn run() -> Result<()> {
         .output_file
         .unwrap_or(input_name.to_string() + " (Converted)" + output_extension);
     let output_data =
-        &convert(&input_data, input_format, output_format).context("Conversion failed")?;
+        &convert(input_data, input_format, output_format).context("Conversion failed")?;
 
     File::create(output_file_name)
         .with_context(|| format!("Failed to create output file '{}'", output_file_name))?

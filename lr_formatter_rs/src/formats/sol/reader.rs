@@ -2,14 +2,14 @@ use byteorder::{BigEndian, ReadBytesExt};
 use std::io::{Cursor, Read};
 
 use crate::{
-    TrackReadError,
-    formats::sol::amf0::deserialize,
-    track::{GridVersion, Line, LineType, SceneryLine, SimulationLine, Track},
+    formats::{TrackReadError, sol::amf0::deserialize},
+    track::{GridVersion, LineType, Track, TrackBuilder, Vec2},
     util::{StringLength, bytes_to_hex_string, parse_string},
 };
 
-pub fn read(data: &[u8], track_index: Option<u32>) -> Result<Track, TrackReadError> {
-    let mut internal = Track::default();
+pub fn read(data: Vec<u8>, track_index: Option<u32>) -> Result<Track, TrackReadError> {
+    let track_builder = &mut TrackBuilder::new();
+    let data_size = data.len() as u64;
     let mut cursor = Cursor::new(data);
 
     // Magic number
@@ -64,11 +64,11 @@ pub fn read(data: &[u8], track_index: Option<u32>) -> Result<Track, TrackReadErr
     }
 
     // Track Data
-    let current_pos = cursor.position() as usize;
-    let trimmed = &data[current_pos..data.len().saturating_sub(1)]; // trim off the last byte \x00
-    cursor = Cursor::new(trimmed);
+    let current_pos = cursor.position();
+    // Slice from current position to last byte - 1 contains valid AMF0 format
+    let mut trimmed_cursor = cursor.take(data_size.saturating_sub(1) - current_pos);
+    let result = &deserialize(&mut trimmed_cursor)?;
 
-    let result = &deserialize(&mut cursor)?;
     let track_list_amf = &result[0];
     let track_list =
         track_list_amf
@@ -102,13 +102,14 @@ pub fn read(data: &[u8], track_index: Option<u32>) -> Result<Track, TrackReadErr
             })?;
 
     if let Some(val) = target_track.get("label") {
-        internal.title = val
+        let title = val
             .clone()
             .get_string()
             .ok_or(TrackReadError::InvalidData {
                 name: "label".to_string(),
                 value: format!("{:?}", val),
             })?;
+        track_builder.metadata().title(title);
     }
 
     if let Some(val) = target_track.get("version") {
@@ -120,7 +121,7 @@ pub fn read(data: &[u8], track_index: Option<u32>) -> Result<Track, TrackReadErr
                 value: format!("{:?}", val),
             })?;
 
-        internal.grid_version = match version_string.as_str() {
+        let grid_version = match version_string.as_str() {
             "6.0" => GridVersion::V6_0,
             "6.1" => GridVersion::V6_1,
             "6.2" => GridVersion::V6_2,
@@ -130,9 +131,10 @@ pub fn read(data: &[u8], track_index: Option<u32>) -> Result<Track, TrackReadErr
                     value: other.to_string(),
                 });
             }
-        }
+        };
+        track_builder.metadata().grid_version(grid_version);
     } else {
-        internal.grid_version = GridVersion::V6_0
+        track_builder.metadata().grid_version(GridVersion::V6_0);
     }
 
     if let Some(val) = target_track.get("startLine") {
@@ -148,35 +150,34 @@ pub fn read(data: &[u8], track_index: Option<u32>) -> Result<Track, TrackReadErr
             name: "start line x".to_string(),
             value: format!("{:?}", start_position),
         })?;
-        internal.start_position.x =
-            start_x_amf
-                .clone()
-                .get_number()
-                .ok_or(TrackReadError::InvalidData {
-                    name: "start x value".to_string(),
-                    value: format!("{:?}", start_x_amf),
-                })?;
+        let start_pos_x = start_x_amf
+            .clone()
+            .get_number()
+            .ok_or(TrackReadError::InvalidData {
+                name: "start x value".to_string(),
+                value: format!("{:?}", start_x_amf),
+            })?;
 
         let start_y_amf = start_position.get("1").ok_or(TrackReadError::InvalidData {
             name: "start line y".to_string(),
             value: format!("{:?}", start_position),
         })?;
-        internal.start_position.y =
-            start_y_amf
-                .clone()
-                .get_number()
-                .ok_or(TrackReadError::InvalidData {
-                    name: "start y value".to_string(),
-                    value: format!("{:?}", start_y_amf),
-                })?;
+        let start_pos_y = start_y_amf
+            .clone()
+            .get_number()
+            .ok_or(TrackReadError::InvalidData {
+                name: "start y value".to_string(),
+                value: format!("{:?}", start_y_amf),
+            })?;
+
+        track_builder.metadata().start_position(Vec2 {
+            x: start_pos_x,
+            y: start_pos_y,
+        });
     }
 
     if target_track.contains_key("trackData") {
-        let rider = internal.riders.get_mut(0).ok_or(TrackReadError::Other {
-            message: "Internal track should have contained an initial rider".to_string(),
-        })?;
-        rider.start_velocity.x = 0.0;
-        rider.start_velocity.y = 0.0;
+        track_builder.metadata().zero_start(true);
     }
 
     if let Some(val) = target_track.get("data") {
@@ -336,31 +337,33 @@ pub fn read(data: &[u8], track_index: Option<u32>) -> Result<Track, TrackReadErr
                 }
             };
 
-            let base_line = Line {
-                x1,
-                y1,
-                x2,
-                y2,
-                id,
-                line_type,
-            };
+            let endpoints = (Vec2 { x: x1, y: y1 }, Vec2 { x: x2, y: y2 });
 
-            if line_type == LineType::Scenery {
-                internal.scenery_lines.push(SceneryLine {
-                    base_line,
-                    width: None,
-                });
-            } else {
-                internal.simulation_lines.push(SimulationLine {
-                    base_line,
-                    flipped,
-                    left_extension,
-                    right_extension,
-                    multiplier: None,
-                });
+            match line_type {
+                LineType::Standard => {
+                    track_builder.line_group().add_standard_line(
+                        id,
+                        endpoints,
+                        flipped,
+                        left_extension,
+                        right_extension,
+                    )?;
+                }
+                LineType::Acceleration => {
+                    track_builder.line_group().add_acceleration_line(
+                        id,
+                        endpoints,
+                        flipped,
+                        left_extension,
+                        right_extension,
+                    )?;
+                }
+                LineType::Scenery => {
+                    track_builder.line_group().add_scenery_line(id, endpoints)?;
+                }
             }
         }
     }
 
-    Ok(internal)
+    Ok(track_builder.build()?)
 }

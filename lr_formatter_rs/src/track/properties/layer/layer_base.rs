@@ -1,17 +1,22 @@
 use derive_builder::Builder;
-use getset::Getters;
+use getset::{CloneGetters, CopyGetters};
 
-#[derive(Getters, Debug, Builder)]
-#[getset(get = "pub")]
+#[derive(CopyGetters, CloneGetters, Debug, Builder)]
 pub struct Layer {
+    #[getset(get_copy = "pub")]
     id: u32,
+    #[getset(get_copy = "pub")]
     index: usize,
-    #[builder(setter(into, strip_option), default)]
+    #[builder(default)]
+    #[getset(get_clone = "pub")]
     name: Option<String>,
-    #[builder(setter(into, strip_option), default)]
+    #[builder(default)]
+    #[getset(get_copy = "pub")]
     visible: Option<bool>,
-    #[builder(setter(into, strip_option), default)]
+    #[builder(default)]
+    #[getset(get_copy = "pub")]
     editable: Option<bool>,
-    #[builder(setter(into, strip_option), default)]
+    #[builder(default)]
+    #[getset(get_copy = "pub")]
     folder_id: Option<Option<u32>>,
 }

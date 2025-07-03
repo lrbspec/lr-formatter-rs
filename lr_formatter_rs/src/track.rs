@@ -1,27 +1,27 @@
 mod feature_field_access;
 mod grid_version;
+mod line_type;
 mod properties;
 mod rgb_color;
 mod vec2;
 
 use derive_more::Display;
+use getset::Getters;
 use std::collections::HashSet;
 use thiserror::Error;
 
 use feature_field_access::{FeatureFieldAccess, UNREACHABLE_MESSAGE};
 pub use grid_version::GridVersion;
-pub use properties::{
-    AccelerationLine, AccelerationLineBuilderError, Layer, LayerBuilderError, LayerFeature,
-    LayerFolder, LayerFolderBuilderError, LayerGroup, LayerGroupBuilderError, LineFeature,
-    LineGroup, LineGroupBuilderError, Metadata, MetadataBuilderError, Rider, RiderBuilderError,
-    RiderFeature, RiderGroup, RiderGroupBuilderError, SceneryLine, SceneryLineBuilderError,
-    StandardLine, StandardLineBuilderError,
-};
+pub use line_type::LineType;
+pub use properties::{layer, line, metadata, rider};
 pub use rgb_color::RGBColor;
 pub use vec2::Vec2;
 
 use crate::track::properties::{
-    LayerGroupBuilder, LineGroupBuilder, MetadataBuilder, RiderGroupBuilder,
+    layer::layer_group::{LayerGroup, LayerGroupBuilder, LayerGroupBuilderError},
+    line::line_group::{LineGroup, LineGroupBuilder, LineGroupBuilderError},
+    metadata::{Metadata, MetadataBuilder, MetadataBuilderError},
+    rider::rider_group::{RiderGroup, RiderGroupBuilder, RiderGroupBuilderError},
 };
 
 #[derive(Debug, Display, PartialEq, Eq, Hash)]
@@ -30,7 +30,8 @@ pub enum TrackFeature {
     Layers,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Getters)]
+#[getset(get = "pub")]
 pub struct Track {
     metadata: Metadata,
     line_group: LineGroup,
@@ -60,21 +61,6 @@ impl Default for TrackBuilder {
 
 impl FeatureFieldAccess<TrackFeature, TrackBuilderError> for TrackBuilder {
     fn require_feature<'a, T>(
-        &self,
-        field: &'a Option<T>,
-        feature: TrackFeature,
-    ) -> Result<&'a T, TrackBuilderError> {
-        if !self.features.contains(&feature) {
-            return Err(TrackBuilderError::MissingFeatureFlag(feature));
-        }
-
-        match field.as_ref() {
-            Some(some_field) => Ok(some_field),
-            None => unreachable!("{}", UNREACHABLE_MESSAGE),
-        }
-    }
-
-    fn require_feature_mut<'a, T>(
         current_features: &HashSet<TrackFeature>,
         field: &'a mut Option<T>,
         feature: TrackFeature,
@@ -108,7 +94,11 @@ impl FeatureFieldAccess<TrackFeature, TrackBuilderError> for TrackBuilder {
 }
 
 impl TrackBuilder {
-    pub fn enable_feature(mut self, feature: TrackFeature) -> Self {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn enable_feature(&mut self, feature: TrackFeature) -> &mut Self {
         if feature == TrackFeature::Layers && self.layer_group.is_none() {
             self.layer_group = Some(LayerGroupBuilder::default());
         }
@@ -121,34 +111,42 @@ impl TrackBuilder {
         self
     }
 
-    pub fn get_metadata(&self) -> &MetadataBuilder {
-        &self.metadata
+    pub fn metadata(&mut self) -> &mut MetadataBuilder {
+        &mut self.metadata
     }
 
-    pub fn get_line_group(&self) -> &LineGroupBuilder {
-        &self.line_group
+    pub fn line_group(&mut self) -> &mut LineGroupBuilder {
+        &mut self.line_group
     }
 
-    pub fn get_layer_group(&self) -> Result<&LayerGroupBuilder, TrackBuilderError> {
-        Ok(self.require_feature(&self.layer_group, TrackFeature::Layers)?)
+    pub fn layer_group(&mut self) -> Result<&mut LayerGroupBuilder, TrackBuilderError> {
+        Ok(TrackBuilder::require_feature(
+            &self.features,
+            &mut self.layer_group,
+            TrackFeature::Layers,
+        )?)
     }
 
-    pub fn get_rider_group(&self) -> Result<&RiderGroupBuilder, TrackBuilderError> {
-        Ok(self.require_feature(&self.rider_group, TrackFeature::Riders)?)
+    pub fn rider_group(&mut self) -> Result<&mut RiderGroupBuilder, TrackBuilderError> {
+        Ok(TrackBuilder::require_feature(
+            &self.features,
+            &mut self.rider_group,
+            TrackFeature::Riders,
+        )?)
     }
 
-    pub fn build(self) -> Result<Track, TrackBuilderError> {
+    pub fn build(&mut self) -> Result<Track, TrackBuilderError> {
         let metadata = self.metadata.build()?;
         let line_group = self.line_group.build()?;
 
-        self.check_feature(TrackFeature::Layers, &self.layer_group, "layer_group");
-        let layer_group = match self.layer_group.as_ref() {
+        self.check_feature(TrackFeature::Layers, &self.layer_group, "layer_group")?;
+        let layer_group = match self.layer_group.as_mut() {
             Some(layer_group_builder) => Some(layer_group_builder.build()?),
             None => None,
         };
 
-        self.check_feature(TrackFeature::Layers, &self.rider_group, "rider_group");
-        let rider_group = match self.rider_group.as_ref() {
+        self.check_feature(TrackFeature::Layers, &self.rider_group, "rider_group")?;
+        let rider_group = match self.rider_group.as_mut() {
             Some(rider_group_builder) => Some(rider_group_builder.build()?),
             None => None,
         };

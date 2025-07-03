@@ -46,21 +46,6 @@ impl Default for LayerGroupBuilder {
 
 impl FeatureFieldAccess<LayerFeature, LayerGroupBuilderError> for LayerGroupBuilder {
     fn require_feature<'a, T>(
-        &self,
-        field: &'a Option<T>,
-        feature: LayerFeature,
-    ) -> Result<&'a T, LayerGroupBuilderError> {
-        if !self.features.contains(&feature) {
-            return Err(LayerGroupBuilderError::MissingFeatureFlag(feature));
-        }
-
-        match field.as_ref() {
-            Some(some_field) => Ok(some_field),
-            None => unreachable!("{}", UNREACHABLE_MESSAGE),
-        }
-    }
-
-    fn require_feature_mut<'a, T>(
         current_features: &HashSet<LayerFeature>,
         field: &'a mut Option<T>,
         feature: LayerFeature,
@@ -94,7 +79,7 @@ impl FeatureFieldAccess<LayerFeature, LayerGroupBuilderError> for LayerGroupBuil
 }
 
 impl LayerGroupBuilder {
-    pub fn enable_feature(mut self, feature: LayerFeature) -> Self {
+    pub fn enable_feature(&mut self, feature: LayerFeature) -> &mut Self {
         if feature == LayerFeature::Folders && self.layer_folders.is_none() {
             self.layer_folders = Some(vec![]);
         }
@@ -103,40 +88,47 @@ impl LayerGroupBuilder {
         self
     }
 
-    pub fn add_layer(mut self, id: u32, index: usize) -> Result<Self, LayerGroupBuilderError> {
+    pub fn add_layer(
+        &mut self,
+        id: u32,
+        index: usize,
+    ) -> Result<&mut LayerBuilder, LayerGroupBuilderError> {
         self.layers
             .push(LayerBuilder::default().id(id).index(index).to_owned());
 
-        Ok(self)
+        Ok(self.layers.last_mut().unwrap())
     }
 
-    pub fn get_layer(&self, index: usize) -> Option<&LayerBuilder> {
-        self.layers.get(index)
+    pub fn get_layers(&mut self) -> impl Iterator<Item = &mut LayerBuilder> {
+        self.layers.iter_mut()
     }
 
     pub fn add_layer_folder(
         &mut self,
         id: u32,
         index: usize,
-    ) -> Result<&mut Self, LayerGroupBuilderError> {
-        let layer_folders = LayerGroupBuilder::require_feature_mut(
-            &self.features,
+    ) -> Result<&mut LayerFolderBuilder, LayerGroupBuilderError> {
+        let layer_folders = LayerGroupBuilder::require_feature(
+            &mut self.features,
             &mut self.layer_folders,
             LayerFeature::Folders,
         )?;
         layer_folders.push(LayerFolderBuilder::default().id(id).index(index).to_owned());
-        Ok(self)
+        Ok(layer_folders.last_mut().unwrap())
     }
 
-    pub fn get_layer_folder(
-        &self,
-        index: usize,
-    ) -> Result<Option<&LayerFolderBuilder>, LayerGroupBuilderError> {
-        let layer_folders = self.require_feature(&self.layer_folders, LayerFeature::Folders)?;
-        Ok(layer_folders.get(index))
+    pub fn get_layer_folders(
+        &mut self,
+    ) -> Result<impl Iterator<Item = &mut LayerFolderBuilder>, LayerGroupBuilderError> {
+        let layer_folders = LayerGroupBuilder::require_feature(
+            &mut self.features,
+            &mut self.layer_folders,
+            LayerFeature::Folders,
+        )?;
+        Ok(layer_folders.iter_mut())
     }
 
-    pub fn build(&self) -> Result<LayerGroup, LayerGroupBuilderError> {
+    pub fn build(&mut self) -> Result<LayerGroup, LayerGroupBuilderError> {
         let mut layers: Vec<Layer> = vec![];
         let mut layer_folders: Option<Vec<LayerFolder>> = None;
 

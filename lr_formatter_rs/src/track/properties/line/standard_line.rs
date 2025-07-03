@@ -1,12 +1,9 @@
-use crate::track::{
-    Vec2,
-    properties::line::{GetEndpoints, impl_get_endpoints},
-};
+use crate::track::Vec2;
 use derive_builder::Builder;
-use getset::Getters;
+use getset::CopyGetters;
 
-#[derive(Getters, Debug, Builder)]
-#[getset(get = "pub")]
+#[derive(CopyGetters, Debug, Builder)]
+#[getset(get_copy = "pub")]
 pub struct StandardLine {
     id: u32,
     #[getset(skip)]
@@ -16,4 +13,20 @@ pub struct StandardLine {
     right_extension: bool,
 }
 
-impl_get_endpoints! {StandardLine}
+impl StandardLine {
+    pub fn x1(&self) -> f64 {
+        self.endpoints.0.x
+    }
+
+    pub fn y1(&self) -> f64 {
+        self.endpoints.0.y
+    }
+
+    pub fn x2(&self) -> f64 {
+        self.endpoints.1.x
+    }
+
+    pub fn y2(&self) -> f64 {
+        self.endpoints.1.y
+    }
+}
