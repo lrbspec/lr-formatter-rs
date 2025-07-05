@@ -31,16 +31,18 @@
   ],
   "layers"?: [
     {
+      // "type" and "folderId" were undefined until folders existed
+      // "editable" was a feature added later
       "id": u32,
       "type"?: 0,
       "name": string,
       "visible": boolean,
-      "editable": boolean,
+      "editable"?: boolean,
       "folderId"?: -1 | u32,
     },
     {
       "id": u32,
-      "type"?: 1,
+      "type": 1,
       "name": string,
       "visible": boolean,
       "editable": boolean,

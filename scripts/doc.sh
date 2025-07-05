@@ -1,3 +1,5 @@
 #!/bin/bash
 
-cargo doc --no-deps
+cd lr_formatter_rs
+
+cargo doc --no-deps --open
