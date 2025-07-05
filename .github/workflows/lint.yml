@@ -27,6 +27,7 @@ jobs:
           override: true
 
       - run: |
+          cd lr_formatter_rs && \
           cargo clippy --all-targets --all-features -- \
             -A clippy::all \
             -D clippy::correctness \
